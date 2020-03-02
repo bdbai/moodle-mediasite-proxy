@@ -1,0 +1,7 @@
+/target
+dict.json
+*.har
+
+node_modules
+*.crx
+*.pem

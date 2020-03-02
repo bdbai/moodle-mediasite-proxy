@@ -1,0 +1,56 @@
+{
+  "name": "XMUM Moodle Mediasite Proxy",
+  "version": "0.1",
+  "description": "Redirect Mediasite video streams",
+  "browser_action": {
+    "default_popup": "options.html"
+  },
+  "icons": {
+    "16": "logo_16.png",
+    "48": "logo_48.png",
+    "128": "logo_128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://xmum.mediasitecloud.jp/Mediasite/Play/*"
+      ],
+      "js": [
+        "playerFrame.js"
+      ],
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://l.xmu.edu.my/mod/mediasite/view.php?id=*"
+      ],
+      "js": [
+        "modView.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://l.xmu.edu.my/course/view.php?id=*"
+      ],
+      "js": [
+        "courseView.js"
+      ]
+    }
+  ],
+  "background": {
+    "page": "background.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "permissions": [
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "https://xmum.mediasitecloud.jp/*",
+    "https://dut6paa3rdk42.cloudfront.net/*",
+    "http://127.0.0.1:10384/*"
+  ],
+  "manifest_version": 2
+}

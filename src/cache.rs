@@ -51,6 +51,7 @@ lazy_static! {
         Client::builder()
             // .http2_only(true)
             .keep_alive_timeout(Duration::from_secs(20))
+            .max_idle_per_host(6)
             .retry_canceled_requests(true)
             .build(https)
     };

@@ -1,6 +1,6 @@
 {
   "name": "XMUM Moodle Mediasite Proxy",
-  "version": "0.1",
+  "version": "0.2",
   "description": "Redirect Mediasite video streams",
   "browser_action": {
     "default_popup": "options.html"

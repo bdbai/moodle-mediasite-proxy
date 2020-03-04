@@ -59,8 +59,8 @@ const getWindowStateAsync = () => new Promise((resolve, _reject) => chrome.runti
 }, resolve))
 
 /**
- * 
- * @param {string} state 
+ *
+ * @param {string} state
  */
 const setWindowState = state => chrome.runtime.sendMessage({
     type: 'setWindowState',

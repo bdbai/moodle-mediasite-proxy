@@ -102,4 +102,90 @@ window.addEventListener('message', async e => {
     }
 })
 
+/**
+ * @returns {Promise<string>}
+ */
+const getWindowStateAsync = () => new Promise((resolve, _reject) => chrome.runtime.sendMessage({
+    type: 'getWindowState'
+}, resolve))
+
+/**
+ *
+ * @param {string} state
+ */
+const setWindowState = state => chrome.runtime.sendMessage({
+    type: 'setWindowState',
+    state
+})
+
+let isFullscreen = false
+
+/**
+ * @type {string}
+ */
+let defaultWindowState = 'maximized'
+
+window.addEventListener('load', _e => {
+    const $style = document.createElement('style')
+    $style.innerHTML = `
+    body.mediasite-proxy-fullscreen::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mediasite-proxy-play-control {
+        font-size: 0.8em;
+        position: absolute;
+        right: 8%;
+        background-color: #55555588;
+        color: white;
+        border-radius: 8%;
+        padding: 4px 10px;
+        margin: 4px;
+        cursor: pointer;
+        transition: text-shadow 0.4s;
+    }
+
+    .mediasite-proxy-play-control:hover {
+        text-shadow: 0 0 8px white;
+    }
+
+    .mediasite-content.on-fullscreen .mediasite-proxy-play-control {
+        position: fixed;
+        top: 0;
+        right: 8px;
+        z-index: 1200;
+    }
+
+    .mediasite-content.on-fullscreen iframe {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1100;
+        border: none;
+    }`
+    document.head.appendChild($style)
+    const cons = document.getElementsByClassName('mediasite-content')
+    for (const $con of Array.from(cons)) {
+        const $control = document.createElement('div')
+        $control.className = 'mediasite-proxy-play-control'
+        $control.innerText = 'Toggle full screen'
+        $control.addEventListener('click', async e => {
+            e.preventDefault()
+            const currentWindowState = await getWindowStateAsync()
+            if (isFullscreen) {
+                setWindowState(defaultWindowState)
+            } else {
+                setWindowState('fullscreen')
+                defaultWindowState = currentWindowState
+            }
+            isFullscreen = !isFullscreen
+            $con.classList.toggle('on-fullscreen')
+            document.body.classList.toggle('mediasite-proxy-fullscreen')
+        })
+        $con.prepend($control)
+    }
+})
+
 console.log('Listening on messages')

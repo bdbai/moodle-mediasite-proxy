@@ -1,10 +1,11 @@
 {
   "name": "XMUM Moodle Mediasite Proxy",
-  "version": "0.3",
+  "version": "0.4",
   "description": "Redirect Mediasite video streams",
   "browser_specific_settings": {
     "gecko": {
-      "id": "moodle-mediasite-proxy@bdbai"
+      "id": "moodle-mediasite-proxy@bdbai",
+      "update_url": "https://mediasitehelper.azurewebsites.net/extension/ff-updates.json"
     }
   },
   "browser_action": {

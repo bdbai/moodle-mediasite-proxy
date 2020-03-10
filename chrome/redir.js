@@ -35,6 +35,9 @@ chrome.webRequest.onBeforeRequest.addListener(req => {
     if (req.url.includes('Fragment') && !settings.mediaFw) {
         return
     }
+    if (!req.url.startsWith(cfOrigin) && !req.url.startsWith(localOrigin)) {
+        return
+    }
     const redirectUrl = req.url.replace(cfOrigin, localOrigin)
         + (req.url.includes('?') ? '&url=' : '?url=')
         + encodeURIComponent(req.url.replace(localOrigin, cfOrigin))
@@ -43,7 +46,7 @@ chrome.webRequest.onBeforeRequest.addListener(req => {
 }, {
     urls: [
         dictUrl,
-        localOrigin + '/*', // Requests from m3u8 player
+        'http://127.0.0.1/*', // Requests from m3u8 player
         'https://dut6paa3rdk42.cloudfront.net/MediasiteDeliver/MP4_amoiuniv/*site=xmum.mediasitecloud.jp'
     ]
-}, ['blocking', 'extraHeaders'])
+}, ['blocking'])

@@ -2,6 +2,11 @@
   "name": "XMUM Moodle Mediasite Proxy",
   "version": "0.2",
   "description": "Redirect Mediasite video streams",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "moodle-mediasite-proxy@bdbai"
+    }
+  },
   "browser_action": {
     "default_popup": "options.html"
   },
@@ -50,7 +55,7 @@
     "webRequestBlocking",
     "https://xmum.mediasitecloud.jp/*",
     "https://dut6paa3rdk42.cloudfront.net/*",
-    "http://127.0.0.1:10384/*"
+    "http://127.0.0.1/*"
   ],
   "manifest_version": 2
 }

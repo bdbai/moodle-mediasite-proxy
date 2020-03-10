@@ -1,19 +1,25 @@
 /**
- * @type {Promise<chrome.windows.Window>}
+ * @type {chrome.windows.Window}
  */
-const currentWindowAsync = new Promise((resolve, _reject) => chrome.windows.getCurrent(resolve))
+let currentWindow = undefined
 
-chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
+chrome.windows.getCurrent(w => currentWindow = w)
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const { type } = msg
-    const w = await currentWindowAsync
+    if (typeof currentWindow === 'undefined') {
+        return
+    }
     switch (type) {
         case 'getWindowState':
-            sendResponse(w.state)
+            const gotState = currentWindow.state || 'maximized'
+            sendResponse(gotState)
+            console.debug('getwindowstate', gotState)
             break
         case 'setWindowState':
             console.debug('setwindowstate', msg)
             const { state } = msg
-            chrome.windows.update(w.id, { state }, _w => sendResponse())
+            chrome.windows.update(currentWindow.id, { state }, _w => sendResponse())
     }
 })
 

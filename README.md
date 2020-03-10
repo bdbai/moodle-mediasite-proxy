@@ -1,12 +1,12 @@
 # Moodle Mediasite Proxy
 
-给境内 Moodle Mediasite 用户访问视频加速的本地代理，适用于 Chrome 79+。
+给境内 Moodle Mediasite 用户访问视频加速的本地代理，适用于 Chrome 79+ 和 Firefox 73。
 
 ## 食用方法
 ### 准备工作
 克隆本仓库。
 ### 配置浏览器
-打开 [Chrome 扩展](chrome://extensions)，选择「加载已解压的扩展程序」，打开仓库的 `chrome` 目录，完成扩展安装。
+打开 [Chrome 扩展](chrome://extensions)，启用开发者模式，选择「加载已解压的扩展程序」，打开仓库的 `chrome` 目录，完成扩展安装。Firefox 用户进入 [调试 - 运行时 / this-firefox](about:debugging#/runtime/this-firefox) ，选择「临时载入附加组件...」，打开仓库的 `Chrome/manifest.json` 文件完成安装。
 
 使用右上角的扩展图标配置要启用的功能，详细说明见下方原理。
 ### 配置本地代理

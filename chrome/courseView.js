@@ -1,6 +1,6 @@
 /**
  * @template T
- * @param {T[]} arr 
+ * @param {T[]} arr
  * @param {(item: T) => boolean} predicate
  * @returns {T[]}
  */
@@ -10,12 +10,13 @@ function skipUntil(arr, predicate) {
             return arr.slice(i)
         }
     }
+    return []
 }
 
 /**
  * @template T
- * @param {PromiseLike<T>[]} arr 
- * @param {(item: T) => boolean} predicate 
+ * @param {PromiseLike<T>[]} arr
+ * @param {(item: T) => boolean} predicate
  * @return {Promise<T | undefined>}
  */
 async function findAsync(arr, predicate) {
@@ -128,7 +129,11 @@ let defaultWindowState = 'maximized'
 window.addEventListener('load', _e => {
     const $style = document.createElement('style')
     $style.innerHTML = `
-    body.mediasite-proxy-fullscreen::-webkit-scrollbar {
+    html.mediasite-proxy-fullscreen {
+        scrollbar-width: none; /* Hide scrollbar on Firefox */
+    }
+
+    .mediasite-proxy-fullscreen body::-webkit-scrollbar {
         display: none;
     }
 
@@ -182,7 +187,7 @@ window.addEventListener('load', _e => {
             }
             isFullscreen = !isFullscreen
             $con.classList.toggle('on-fullscreen')
-            document.body.classList.toggle('mediasite-proxy-fullscreen')
+            document.documentElement.classList.toggle('mediasite-proxy-fullscreen')
         })
         $con.prepend($control)
     }

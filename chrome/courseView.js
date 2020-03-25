@@ -54,7 +54,10 @@ window.addEventListener('message', async e => {
             directUrls,
             slideStreams,
             title,
-            mediasiteId
+            mediasiteId,
+            coverages, // second!
+            duration,
+            bookmark
         } = e.data
         const con = await findAsync(mediaElements, ([mId, _$c]) => mId === mediasiteId);
         if (!con) {
@@ -63,6 +66,7 @@ window.addEventListener('message', async e => {
         }
         const [_, $con] = con
 
+        // Append media info
         const $header = document.createElement('h4')
         $header.innerText = 'Media information'
         $con.appendChild($header)
@@ -100,6 +104,47 @@ window.addEventListener('message', async e => {
             })
             $con.appendChild($copySlideDataBtn)
         }
+
+        // Show completeness
+        let $li = $con.parentElement
+        while ($li && $li.tagName !== 'LI') {
+            $li = $li.parentElement
+        }
+        if (!$li) {
+            return
+        }
+        let appendix = ' '
+        if (bookmark && bookmark.position) {
+            const { position } = bookmark
+            const progress = position / duration
+            appendix += `[bookmark at ${
+                Math.floor(position / 6e4)}:${
+                Math.floor(position % 6e4 / 1e3)}(${
+                progress.toLocaleString('en-US', {
+                    style: 'percent',
+                    maximumFractionDigits: 2
+                })})] `
+        }
+        const $instanceNameTextNode = $li.querySelector('span.instancename').childNodes[0]
+
+        // Assume coverages do not overlap
+        const totalSeconds = Math.floor(duration / 1e3)
+        let coveredSeconds = 0
+        for (const {
+            Duration: duration,
+            StartTime: startTime
+        } of coverages) {
+            const endTime = Math.min(duration + startTime, totalSeconds)
+            coveredSeconds += endTime - startTime
+        }
+        appendix += `[Est. completeness = ${
+            Math.min(1, coveredSeconds / totalSeconds)
+                .toLocaleString('en-US', {
+                    style: 'percent',
+                    maximumFractionDigits: 2
+                })
+            }]`
+        $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
     }
 })
 
@@ -125,8 +170,7 @@ let isFullscreen = false
  * @type {string}
  */
 let defaultWindowState = 'maximized'
-
-window.addEventListener('load', _e => {
+!function () {
     const $style = document.createElement('style')
     $style.innerHTML = `
     html.mediasite-proxy-fullscreen {
@@ -191,6 +235,6 @@ window.addEventListener('load', _e => {
         })
         $con.prepend($control)
     }
-})
+}()
 
 console.log('Listening on messages')

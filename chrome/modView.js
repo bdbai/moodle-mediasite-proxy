@@ -1,13 +1,20 @@
+function formatTime(seconds) {
+    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
+}
+
 window.addEventListener('message', e => {
     console.debug('Got message', e.data)
     if (e.data.type === 'getPlayerOptions') {
         const {
             directUrls,
             slideStreams,
-            title
+            title,
+            coverages, // second!
+            duration
         } = e.data
         const $con = document.createElement('div')
 
+        // Append media info
         const $header = document.createElement('h4')
         $header.innerText = 'Media information'
         $con.appendChild($header)
@@ -44,6 +51,42 @@ window.addEventListener('message', e => {
                     .catch(e => alert('Cannot copy slide data: ' + e.toString()))
             })
             $con.appendChild($copySlideDataBtn)
+        }
+
+        // Append unwatched periods
+        const totalSeconds = Math.floor(duration / 1e3)
+        // Assume coverages do not overlap
+        const unwatchedPeriods = []
+        let lastWatchedSecond = 0
+        for (const {
+            Duration: duration,
+            StartTime: startTime
+        } of coverages) {
+            if (startTime > lastWatchedSecond) {
+                unwatchedPeriods.push([lastWatchedSecond, startTime])
+            }
+            lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
+        }
+        if (lastWatchedSecond < totalSeconds) {
+            unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
+        }
+
+        const $unwatchedList = document.createElement('ol')
+        if (unwatchedPeriods.length > 0) {
+            const $unwatchedTitle = document.createElement('h5')
+            $unwatchedTitle.innerText = 'Unwatched portions'
+            $con.appendChild($unwatchedTitle)
+        }
+        for (const [start, end] of unwatchedPeriods) {
+            const $unwatched = document.createElement('li')
+            const period = end - start
+            $unwatched.innerText = `${
+                formatTime(start)} - ${formatTime(end)} (${period} second${
+                period === 1 ? '' : 's'})`
+            $unwatchedList.appendChild($unwatched)
+        }
+        if (unwatchedPeriods.length > 0) {
+            $con.appendChild($unwatchedList)
         }
 
         const $cardBody = document.querySelector('#region-main .card-body')

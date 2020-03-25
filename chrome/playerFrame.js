@@ -26,21 +26,34 @@ const main = async () => {
     })
         .then(n => n.json())
 
-    const presentation = response.d.Presentation
-    const streams = presentation.Streams
+    const {
+        d: {
+            CoverageEvents: coverages,
+            Presentation: {
+                Title: title,
+                PresentationId: mediasiteId,
+                Streams: streams,
+                Duration: duration
+            }
+        }
+    } = response
     const directUrls = streams
         .filter(s => s.VideoUrls.length > 0)
         .map(s => s.VideoUrls[0].Location)
     const slideStreams = streams
         .filter(s => s.StreamType === 2)
+    const bookmark = JSON.parse(localStorage.getItem('bookmarks') || '[]')
+        .find(b => b.presentationId === mediasiteId)
     window.parent.postMessage({
         type: 'getPlayerOptions',
         directUrls,
         slideStreams,
-        title: presentation.Title,
-        mediasiteId: presentation.PresentationId
+        title,
+        mediasiteId,
+        coverages,
+        duration,
+        bookmark
     }, 'https://l.xmu.edu.my')
-    console.log('Message sent')
 }
 
 chrome.storage.sync.get({ extractInfo: true }, ({ extractInfo }) => {

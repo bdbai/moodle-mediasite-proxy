@@ -143,7 +143,7 @@ window.addEventListener('load', _e => {
         right: 8%;
         background-color: #55555588;
         color: white;
-        border-radius: 8%;
+        border-radius: 0.3em;
         padding: 4px 10px;
         margin: 4px;
         cursor: pointer;

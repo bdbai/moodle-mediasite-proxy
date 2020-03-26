@@ -15,7 +15,8 @@ const settingKeyToId = {
     dictFw: 'dict-fw-box',
     manifestFw: 'manifest-fw-box',
     mediaFw: 'media-fw-box',
-    extractInfo: 'extract-info-box'
+    extractInfo: 'extract-info-box',
+    autoplay: 'autoplay-box',
 }
 
 async function main() {

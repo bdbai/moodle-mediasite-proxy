@@ -16,6 +16,7 @@ export const defaultSettings = {
     manifestFw: false,
     mediaFw: false,
     extractInfo: true,
+    autoplay: true,
 }
 
 /**

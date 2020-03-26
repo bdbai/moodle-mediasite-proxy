@@ -2,9 +2,15 @@ function formatTime(seconds) {
     return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
 }
 
-window.addEventListener('message', e => {
+const getAutoplaySettingAsync = () => new Promise((resolve, reject) =>
+    chrome.storage.sync.get({ autoplay: true }, ({ autoplay }) => {
+        resolve(autoplay)
+    }))
+
+window.addEventListener('message', async e => {
     console.debug('Got message', e.data)
     if (e.data.type === 'getPlayerOptions') {
+        e.stopImmediatePropagation()
         const {
             directUrls,
             slideStreams,
@@ -91,6 +97,21 @@ window.addEventListener('message', e => {
 
         const $cardBody = document.querySelector('#region-main .card-body')
         $cardBody.appendChild($con)
+    } else if (typeof e.data === 'string') {
+        let data = { event: '' }
+        try {
+            data = JSON.parse(e.data)
+        } catch (syntaxErr) {
+            return
+        }
+        if (data.event === 'playcoverready'
+            && await getAutoplaySettingAsync()
+            && document.referrer
+            && document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')) {
+            /** @type {HTMLIFrameElement} */
+            const $iframe = document.querySelector('iframe.mediasite_lti_courses_iframe')
+            $iframe.contentWindow.postMessage({ type: 'play' }, 'https://xmum.mediasitecloud.jp')
+        }
     }
 })
 

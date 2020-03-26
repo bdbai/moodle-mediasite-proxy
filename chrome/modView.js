@@ -138,7 +138,7 @@ let isFullscreen = false
  */
 let defaultWindowState = 'maximized'
 
-window.addEventListener('load', _e => {
+!function () {
     const $style = document.createElement('style')
     $style.innerHTML = `
     html.mediasite-proxy-fullscreen {
@@ -186,6 +186,68 @@ window.addEventListener('load', _e => {
     }`
     document.head.appendChild($style)
     const $con = document.querySelector('#region-main .card-body')
+
+    // Show prev/next
+    /** @type {HTMLAnchorElement} */
+    const $courseLink = document.querySelector('ol.breadcrumb li.breadcrumb-item:last-child a')
+    const courseId = $courseLink.href.match(/id=(\d+)/)[1]
+    const videoId = window.location.href.match(/id=(\d+)/)[1]
+    const titleStr = localStorage.getItem('mediasite_video_ids_' + courseId)
+    let titles = []
+    try {
+        titles = JSON.parse(titleStr)
+    } catch (parseErr) {
+        return
+    }
+    if (titles) {
+        const videoIndex = titles.indexOf(titles.find(v => v[0] === videoId))
+        if (videoIndex === -1) {
+            return
+        }
+        const $prevLi = document.createElement('li')
+        $prevLi.classList.add('page-item')
+        if (videoIndex > 0) {
+            const [id, name] = titles[videoIndex - 1]
+            /** @type {HTMLAnchorElement} */
+            const $link = document.createElement('a')
+            $link.href = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
+            $link.classList.add('page-link')
+            const $icon = document.createElement('i')
+            $icon.className = 'icon fa fa-chevron-left fa-fw '
+            $link.appendChild($icon)
+            $link.appendChild(document.createTextNode(name))
+            $prevLi.appendChild($link)
+        } else {
+            $prevLi.classList.add('disabled')
+        }
+
+        const $nextLi = document.createElement('li')
+        $nextLi.classList.add('page-item')
+        if (videoIndex < titles.length - 1) {
+            const [id, name] = titles[videoIndex + 1]
+            /** @type {HTMLAnchorElement} */
+            const $link = document.createElement('a')
+            $link.href = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
+            $link.classList.add('page-link')
+            const $icon = document.createElement('i')
+            $icon.className = 'icon fa fa-chevron-right fa-fw '
+            $link.appendChild(document.createTextNode(name))
+            $link.appendChild($icon)
+            $nextLi.appendChild($link)
+        } else {
+            $nextLi.classList.add('disabled')
+        }
+
+        const $ul = document.createElement('ul')
+        $ul.classList.add('pagination')
+        $ul.style.display = 'flex'
+        $ul.style.justifyContent = 'center'
+        $ul.appendChild($prevLi)
+        $ul.appendChild($nextLi)
+        $con.appendChild($ul)
+    }
+
+    // Show toggle full screen button
     const $control = document.createElement('div')
     $control.className = 'mediasite-proxy-play-control'
     $control.innerText = 'Toggle full screen'
@@ -203,6 +265,4 @@ window.addEventListener('load', _e => {
         document.documentElement.classList.toggle('mediasite-proxy-fullscreen')
     })
     $con.prepend($control)
-})
-
-console.log('Listening on messages')
+}()

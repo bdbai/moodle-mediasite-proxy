@@ -29,11 +29,13 @@ async function findAsync(arr, predicate) {
     return undefined
 }
 
+const $mediaLis = Array
+    .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
+
 /**
  * @type {Promise<[string, HTMLDivElement]>[]}
  */
-const mediaElements = Array
-    .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
+const mediaElements = $mediaLis
     .map($l => {
         const $content = $l.querySelector('div.mediasite-content')
         const id = $l.id.substr(7) // module-76543
@@ -125,7 +127,8 @@ window.addEventListener('message', async e => {
                     maximumFractionDigits: 2
                 })})] `
         }
-        const $instanceNameTextNode = $li.querySelector('span.instancename').childNodes[0]
+        const $instanceNameNode = $li.querySelector('span.instancename')
+        const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
         // Assume coverages do not overlap
         const totalSeconds = Math.floor(duration / 1e3)
@@ -144,6 +147,7 @@ window.addEventListener('message', async e => {
                     maximumFractionDigits: 2
                 })
             }]`
+        $instanceNameNode.setAttribute('data-original-text', $instanceNameTextNode.textContent)
         $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
     }
 })
@@ -235,6 +239,17 @@ let defaultWindowState = 'maximized'
         })
         $con.prepend($control)
     }
+
+    // Collect media titles and links
+    const courseId = window.location.href.match(/id=(\d+)/)[1]
+    const titles = $mediaLis.map($li => {
+        const id = $li.id.substr(7) // module-76543
+        const $instanceName = $li.querySelector('span.instancename')
+        const instancename = $instanceName.getAttribute('data-original-text')
+            || $instanceName.childNodes[0].textContent
+        return [id, instancename]
+    })
+    localStorage.setItem('mediasite_video_ids_' + courseId, JSON.stringify(titles))
 }()
 
 console.log('Listening on messages')

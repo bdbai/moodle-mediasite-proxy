@@ -71,7 +71,7 @@ struct RequestUrlInfo<'a> {
 }
 
 fn parse_proxy_url(url: &Uri) -> Option<RequestUrlInfo> {
-    let mut path_segs = url.path().split('/').skip(3);
+    let mut path_segs = url.path().split('/').skip(4);
     let resource_id = path_segs.next()?.split('.').next()?;
     let _resource_id = Uuid::parse_str(resource_id).ok()?;
     let resource = path_segs.last()?;

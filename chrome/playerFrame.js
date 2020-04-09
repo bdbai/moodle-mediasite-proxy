@@ -16,7 +16,7 @@ const main = async () => {
             UrlReferrer: document.getElementById('UrlReferrer').innerText
         }
     }
-    const response = await fetch("https://xmum.mediasitecloud.jp/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {
+    const response = await fetch("/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {
         method: "POST",
         headers: {
             'Content-Type': "application/json; charset=utf-8",

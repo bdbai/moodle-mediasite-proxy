@@ -1,7 +1,7 @@
 import { getSettings, defaultSettings } from './settings.js'
 
-const dictUrl = 'https://xmum.mediasitecloud.jp/Mediasite/Play/Localization/Dictionary.ashx?version=3474'
-const cfOrigin = 'https://dut6paa3rdk42.cloudfront.net'
+const dictUrl = 'https://mymedia.xmu.edu.cn/Mediasite/Play/Localization/Dictionary.ashx?version=3474'
+const cfOrigin = 'https://myv.xmu.edu.cn'
 const localOrigin = 'http://127.0.0.1:10384'
 const localDictUrl = localOrigin + '/dict'
 
@@ -47,6 +47,6 @@ chrome.webRequest.onBeforeRequest.addListener(req => {
     urls: [
         dictUrl,
         'http://127.0.0.1/*', // Requests from m3u8 player
-        'https://dut6paa3rdk42.cloudfront.net/MediasiteDeliver/MP4_amoiuniv/*site=xmum.mediasitecloud.jp'
+        'https://myv.xmu.edu.cn/MediasiteDeliver/*'
     ]
 }, ['blocking'])

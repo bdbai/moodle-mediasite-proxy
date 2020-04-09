@@ -19,7 +19,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://xmum.mediasitecloud.jp/Mediasite/Play/*"
+        "https://mymedia.xmu.edu.cn/Mediasite/Play/*"
       ],
       "js": [
         "playerFrame.js"
@@ -54,8 +54,8 @@
     "storage",
     "webRequest",
     "webRequestBlocking",
-    "https://xmum.mediasitecloud.jp/*",
-    "https://dut6paa3rdk42.cloudfront.net/*",
+    "https://mymedia.xmu.edu.cn/*",
+    "https://myv.xmu.edu.cn/*",
     "http://127.0.0.1/*"
   ],
   "manifest_version": 2

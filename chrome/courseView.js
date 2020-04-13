@@ -38,8 +38,10 @@ const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.g
  * @param {Element} $el 
  */
 async function collectFromGetPlayerOptions($el) {
+    if (!await extractInfoAsync) {
+        return
+    }
     const id = $el.id.substr(7) // module-76543
-    const playerOptions = await getPlayerOptionsAsync(id)
     const {
         directUrls,
         slideStreams,
@@ -47,8 +49,8 @@ async function collectFromGetPlayerOptions($el) {
         mediasiteId,
         coverages, // second!
         duration,
-        bookmark
-    } = playerOptions
+        bookmark // second!
+    } = await getPlayerOptionsAsync(id)
 
     // Append media info
     const $header = document.createElement('h4')

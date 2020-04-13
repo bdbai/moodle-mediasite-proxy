@@ -7,97 +7,117 @@ const getAutoplaySettingAsync = () => new Promise((resolve, reject) =>
         resolve(autoplay)
     }))
 
+/**
+ * @param {string} moodleId 
+ * @returns {Promise<any>}
+ */
+const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chrome.runtime.sendMessage({
+    type: 'getPlayerOptions',
+    moodleId
+}, resolve))
+
+/**
+ * @type {Promise<{ extractInfo: boolean }>}
+ */
+const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.get({ extractInfo: true }, resolve))
+
+async function collectFromGetPlayerOptions() {
+    if (!await extractInfoAsync) {
+        return
+    }
+    const id = location.search.match(/id=(\d+)/)[1]
+    const {
+        directUrls,
+        slideStreams,
+        title,
+        mediasiteId,
+        coverages, // second!
+        duration,
+        bookmark // second!
+    } = await getPlayerOptionsAsync(id)
+    const $con = document.createElement('div')
+
+    // Append media info
+    const $header = document.createElement('h4')
+    $header.innerText = 'Media information'
+    $con.appendChild($header)
+
+    $con.appendChild(document.createElement('hr'))
+
+    const $title = document.createElement('p')
+    $title.innerText = 'Title: ' + title
+    $con.appendChild($title)
+
+    const $urlText = document.createElement('h5')
+    $urlText.innerText = 'Direct URLs'
+    $con.appendChild($urlText)
+
+    const $urlList = document.createElement('ul')
+    for (const url of directUrls) {
+        const $li = document.createElement('li')
+        const $a = document.createElement('a')
+        $a.href = url
+        $a.innerText = url
+        $li.appendChild($a)
+        $urlList.appendChild($li)
+    }
+    $con.appendChild($urlList)
+
+    for (const slideStream of slideStreams) {
+        const $copySlideDataBtn = document.createElement('button')
+        $copySlideDataBtn.innerText = 'Copy slide data'
+        $copySlideDataBtn.addEventListener('click', ev => {
+            ev.preventDefault()
+            navigator.clipboard
+                .writeText(JSON.stringify(slideStream))
+                .then(() => alert('Slide data copied'))
+                .catch(e => alert('Cannot copy slide data: ' + e.toString()))
+        })
+        $con.appendChild($copySlideDataBtn)
+    }
+
+    // Append unwatched periods
+    const totalSeconds = Math.floor(duration / 1e3)
+    // Assume coverages do not overlap
+    const unwatchedPeriods = []
+    let lastWatchedSecond = 0
+    for (const {
+        Duration: duration,
+        StartTime: startTime
+    } of coverages) {
+        if (startTime > lastWatchedSecond) {
+            unwatchedPeriods.push([lastWatchedSecond, startTime])
+        }
+        lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
+    }
+    if (lastWatchedSecond < totalSeconds) {
+        unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
+    }
+
+    const $unwatchedList = document.createElement('ol')
+    if (unwatchedPeriods.length > 0) {
+        const $unwatchedTitle = document.createElement('h5')
+        $unwatchedTitle.innerText = 'Unwatched portions'
+        $con.appendChild($unwatchedTitle)
+    }
+    for (const [start, end] of unwatchedPeriods) {
+        const $unwatched = document.createElement('li')
+        const period = end - start
+        $unwatched.innerText = `${
+            formatTime(start)} - ${formatTime(end)} (${period} second${
+            period === 1 ? '' : 's'})`
+        $unwatchedList.appendChild($unwatched)
+    }
+    if (unwatchedPeriods.length > 0) {
+        $con.appendChild($unwatchedList)
+    }
+
+    const $cardBody = document.querySelector('#region-main .card-body')
+    $cardBody.appendChild($con)
+}
+
 window.addEventListener('message', async e => {
-    console.debug('Got message', e.data)
-    if (e.data.type === 'getPlayerOptions') {
-        e.stopImmediatePropagation()
-        const {
-            directUrls,
-            slideStreams,
-            title,
-            coverages, // second!
-            duration
-        } = e.data
-        const $con = document.createElement('div')
-
-        // Append media info
-        const $header = document.createElement('h4')
-        $header.innerText = 'Media information'
-        $con.appendChild($header)
-
-        $con.appendChild(document.createElement('hr'))
-
-        const $title = document.createElement('p')
-        $title.innerText = 'Title: ' + title
-        $con.appendChild($title)
-
-        const $urlText = document.createElement('h5')
-        $urlText.innerText = 'Direct URLs'
-        $con.appendChild($urlText)
-
-        const $urlList = document.createElement('ul')
-        for (const url of directUrls) {
-            const $li = document.createElement('li')
-            const $a = document.createElement('a')
-            $a.href = url
-            $a.innerText = url
-            $li.appendChild($a)
-            $urlList.appendChild($li)
-        }
-        $con.appendChild($urlList)
-
-        for (const slideStream of slideStreams) {
-            const $copySlideDataBtn = document.createElement('button')
-            $copySlideDataBtn.innerText = 'Copy slide data'
-            $copySlideDataBtn.addEventListener('click', ev => {
-                ev.preventDefault()
-                navigator.clipboard
-                    .writeText(JSON.stringify(slideStream))
-                    .then(() => alert('Slide data copied'))
-                    .catch(e => alert('Cannot copy slide data: ' + e.toString()))
-            })
-            $con.appendChild($copySlideDataBtn)
-        }
-
-        // Append unwatched periods
-        const totalSeconds = Math.floor(duration / 1e3)
-        // Assume coverages do not overlap
-        const unwatchedPeriods = []
-        let lastWatchedSecond = 0
-        for (const {
-            Duration: duration,
-            StartTime: startTime
-        } of coverages) {
-            if (startTime > lastWatchedSecond) {
-                unwatchedPeriods.push([lastWatchedSecond, startTime])
-            }
-            lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
-        }
-        if (lastWatchedSecond < totalSeconds) {
-            unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
-        }
-
-        const $unwatchedList = document.createElement('ol')
-        if (unwatchedPeriods.length > 0) {
-            const $unwatchedTitle = document.createElement('h5')
-            $unwatchedTitle.innerText = 'Unwatched portions'
-            $con.appendChild($unwatchedTitle)
-        }
-        for (const [start, end] of unwatchedPeriods) {
-            const $unwatched = document.createElement('li')
-            const period = end - start
-            $unwatched.innerText = `${
-                formatTime(start)} - ${formatTime(end)} (${period} second${
-                period === 1 ? '' : 's'})`
-            $unwatchedList.appendChild($unwatched)
-        }
-        if (unwatchedPeriods.length > 0) {
-            $con.appendChild($unwatchedList)
-        }
-
-        const $cardBody = document.querySelector('#region-main .card-body')
-        $cardBody.appendChild($con)
-    } else if (typeof e.data === 'string') {
+    if (typeof e.data === 'string') {
         let data = { event: '' }
         try {
             data = JSON.parse(e.data)
@@ -139,6 +159,7 @@ let isFullscreen = false
 let defaultWindowState = 'maximized'
 
 !function () {
+    collectFromGetPlayerOptions()
     const $style = document.createElement('style')
     $style.innerHTML = `
     html.mediasite-proxy-fullscreen {

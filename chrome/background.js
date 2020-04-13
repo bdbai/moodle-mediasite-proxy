@@ -11,14 +11,19 @@ chrome.windows.getCurrent(w => currentWindow = w)
  */
 const getActionFromHtml = txt => txt.match(/action=("|')(.*?)("|')/)[2]
 
+const unescapeMap = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#x27;": "'", "&#x60;": "`" }
+const unescapeMapRegex = new RegExp('(?:' + Object.keys(unescapeMap).join('|') + ')', 'g')
+
 /**
  * @param {string} txt 
  * @returns {URLSearchParams}
  */
 const getUrlSearchParamsFromHtml = txt => new URLSearchParams(
     Array
-        .from(txt.matchAll(/name=("|')(.*?)("|').*?value=("|')(.*?)("|')/g))
-        .map(([_1, _2, name, _3, _4, value, _5]) => [name, value]))
+        .from(txt.matchAll(/name=("|')(.*)("|').*?value=("|')(.*)("|')/g))
+        .map(([_1, _2, name, _3, _4, value, _5]) => [
+            name,
+            value.replace(unescapeMapRegex, e => unescapeMap[e])]))
 
 /**
  * @param {string} moodleId 
@@ -36,7 +41,7 @@ async function getPlayerOptions(moodleId) {
     const coverPlayRes = await fetch(coverPlayUrl, {
         method: 'post',
         body: moodleLandingParams,
-        credentials: 'omit'
+        credentials: 'include'
     })
         .then(res => res.text())
     const launcherUrl = getActionFromHtml(coverPlayRes)

@@ -38,6 +38,9 @@ chrome.webRequest.onBeforeRequest.addListener(req => {
     if (!req.url.startsWith(cfOrigin) && !req.url.startsWith(localOrigin)) {
         return
     }
+    if (!req.url.includes('manifest') && !req.url.includes('Fragment')) {
+        return
+    }
     const redirectUrl = req.url.replace(cfOrigin, localOrigin)
         + (req.url.includes('?') ? '&url=' : '?url=')
         + encodeURIComponent(req.url.replace(localOrigin, cfOrigin))

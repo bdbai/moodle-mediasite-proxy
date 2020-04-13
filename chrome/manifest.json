@@ -56,7 +56,8 @@
     "webRequestBlocking",
     "https://mymedia.xmu.edu.cn/*",
     "https://myv.xmu.edu.cn/*",
-    "http://127.0.0.1/*"
+    "http://127.0.0.1/*",
+    "https://l.xmu.edu.my/*"
   ],
   "manifest_version": 2
 }

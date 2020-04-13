@@ -1,6 +1,6 @@
 {
   "name": "XMUM Moodle Mediasite Proxy",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Redirect Mediasite video streams",
   "browser_specific_settings": {
     "gecko": {

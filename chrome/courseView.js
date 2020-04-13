@@ -257,6 +257,10 @@ let defaultWindowState = 'maximized'
         align-items: center;
         margin-left: -4em;
     }
+
+    li.mediasite summary > div {
+        width: 100%;
+    }
     
     li.mediasite details {
         margin-left: 4em;

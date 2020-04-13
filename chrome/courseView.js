@@ -169,6 +169,28 @@ async function collectFromGetPlayerOptions($li) {
     $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
 
     $li.appendChild($con)
+
+    const $portionCanvas = document.createElement('canvas')
+    $li.appendChild($portionCanvas)
+    requestAnimationFrame(() => {
+        const width = $portionCanvas.clientWidth
+        const height = $portionCanvas.clientHeight
+        $portionCanvas.width = width
+        $portionCanvas.height = height
+        const canvasCtx = $portionCanvas.getContext('2d')
+        canvasCtx.fillStyle = '#33bbe4'
+        for (const [start, end] of unwatchedPeriods) {
+            const x = start * width / totalSeconds
+            const rectWidth = (end - start) * width / totalSeconds
+            canvasCtx.fillRect(x, 0, rectWidth, height)
+        }
+        if (bookmark && bookmark.position) {
+            canvasCtx.fillStyle = 'black'
+            const { position } = bookmark
+            const x = position * width / duration * 1000 - height / 2
+            canvasCtx.fillRect(x, 0, height, height)
+        }
+    })
 }
 
 /**
@@ -223,6 +245,12 @@ let defaultWindowState = 'maximized'
         z-index: 1100;
         border: none;
     }
+
+    li.mediasite canvas {
+        width: 100%;
+        height: 5px;
+        background-color: #e6f3f3;
+    }
     
     li.mediasite summary {
         display: flex;
@@ -232,6 +260,10 @@ let defaultWindowState = 'maximized'
     
     li.mediasite details {
         margin-left: 4em;
+    }
+
+    li.mediasite details[open] + canvas {
+        display: none;
     }
     
     li.mediasite details h5 {

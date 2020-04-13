@@ -1,3 +1,7 @@
+function formatTime(seconds) {
+    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
+}
+
 const $mediaLis = Array
     .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
 
@@ -35,13 +39,13 @@ const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.g
 
 /**
  * 
- * @param {Element} $el 
+ * @param {Element} $li
  */
-async function collectFromGetPlayerOptions($el) {
+async function collectFromGetPlayerOptions($li) {
     if (!await extractInfoAsync) {
         return
     }
-    const id = $el.id.substr(7) // module-76543
+    const id = $li.id.substr(7) // module-76543
     const {
         directUrls,
         slideStreams,
@@ -52,20 +56,26 @@ async function collectFromGetPlayerOptions($el) {
         bookmark // second!
     } = await getPlayerOptionsAsync(id)
 
+    const $con = document.createElement('details')
+    const $summary = document.createElement('summary')
+
+    const $a = $li.querySelector('a')
+    $a.addEventListener('click', e => {
+        e.preventDefault()
+        location.href = $a.getAttribute('href')
+    })
+
+    for (const $el of Array.from($li.childNodes)) {
+        $li.removeChild($el)
+        $summary.appendChild($el)
+    }
+    $con.appendChild($summary)
+
     // Append media info
-    const $header = document.createElement('h4')
-    $header.innerText = 'Media information'
-    $el.appendChild($header)
-
-    $el.appendChild(document.createElement('hr'))
-
-    const $title = document.createElement('p')
-    $title.innerText = 'Title: ' + title
-    $el.appendChild($title)
-
     const $urlText = document.createElement('h5')
     $urlText.innerText = 'Direct URLs'
-    $el.appendChild($urlText)
+    $con.appendChild($urlText)
+    $con.appendChild(document.createElement('hr'))
 
     const $urlList = document.createElement('ul')
     for (const url of directUrls) {
@@ -76,7 +86,7 @@ async function collectFromGetPlayerOptions($el) {
         $li.appendChild($a)
         $urlList.appendChild($li)
     }
-    $el.appendChild($urlList)
+    $con.appendChild($urlList)
 
     for (const slideStream of slideStreams) {
         const $copySlideDataBtn = document.createElement('button')
@@ -88,10 +98,50 @@ async function collectFromGetPlayerOptions($el) {
                 .then(() => alert('Slide data copied'))
                 .catch(e => alert('Cannot copy slide data: ' + e.toString()))
         })
-        $el.appendChild($copySlideDataBtn)
+        $con.appendChild($copySlideDataBtn)
     }
 
-    // Show completeness
+    // Append unwatched periods
+    const totalSeconds = Math.floor(duration / 1e3)
+    // Assume coverages do not overlap
+    const unwatchedPeriods = []
+    let coveredSeconds = 0
+    let lastWatchedSecond = 0
+    for (const {
+        Duration: duration,
+        StartTime: startTime
+    } of coverages) {
+        const endTime = Math.min(duration + startTime, totalSeconds)
+        coveredSeconds += endTime - startTime
+        if (startTime > lastWatchedSecond) {
+            unwatchedPeriods.push([lastWatchedSecond, startTime])
+        }
+        lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
+    }
+    if (lastWatchedSecond < totalSeconds) {
+        unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
+    }
+
+    const $unwatchedList = document.createElement('ol')
+    if (unwatchedPeriods.length > 0) {
+        const $unwatchedTitle = document.createElement('h5')
+        $unwatchedTitle.innerText = 'Unwatched portions'
+        $con.appendChild($unwatchedTitle)
+        $con.appendChild(document.createElement('hr'))
+    }
+    for (const [start, end] of unwatchedPeriods) {
+        const $unwatched = document.createElement('li')
+        const period = end - start
+        $unwatched.innerText = `${
+            formatTime(start)} - ${formatTime(end)} (${period} second${
+            period === 1 ? '' : 's'})`
+        $unwatchedList.appendChild($unwatched)
+    }
+    if (unwatchedPeriods.length > 0) {
+        $con.appendChild($unwatchedList)
+    }
+
+    // Show bookmark position
     let appendix = ' '
     if (bookmark && bookmark.position) {
         const { position } = bookmark
@@ -104,19 +154,10 @@ async function collectFromGetPlayerOptions($el) {
                 maximumFractionDigits: 2
             })})] `
     }
-    const $instanceNameNode = $el.querySelector('span.instancename')
+    const $instanceNameNode = $con.querySelector('span.instancename')
     const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
-    // Assume coverages do not overlap
-    const totalSeconds = Math.floor(duration / 1e3)
-    let coveredSeconds = 0
-    for (const {
-        Duration: duration,
-        StartTime: startTime
-    } of coverages) {
-        const endTime = Math.min(duration + startTime, totalSeconds)
-        coveredSeconds += endTime - startTime
-    }
+    // Unwatched periods
     appendix += `[Est. completeness = ${
         Math.min(1, coveredSeconds / totalSeconds)
             .toLocaleString('en-US', {
@@ -126,6 +167,8 @@ async function collectFromGetPlayerOptions($el) {
         }]`
     $instanceNameNode.setAttribute('data-original-text', $instanceNameTextNode.textContent)
     $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
+
+    $li.appendChild($con)
 }
 
 /**
@@ -179,6 +222,20 @@ let defaultWindowState = 'maximized'
         left: 0;
         z-index: 1100;
         border: none;
+    }
+    
+    li.mediasite summary {
+        display: flex;
+        align-items: center;
+        margin-left: -4em;
+    }
+    
+    li.mediasite details {
+        margin-left: 4em;
+    }
+    
+    li.mediasite details h5 {
+        margin-top: 1em;
     }`
     document.head.appendChild($style)
 

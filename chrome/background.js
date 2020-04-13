@@ -13,6 +13,7 @@ const getActionFromHtml = txt => txt.match(/action=("|')(.*?)("|')/)[2]
 
 const unescapeMap = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#x27;": "'", "&#x60;": "`" }
 const unescapeMapRegex = new RegExp('(?:' + Object.keys(unescapeMap).join('|') + ')', 'g')
+const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
 
 /**
  * @param {string} txt 
@@ -24,6 +25,22 @@ const getUrlSearchParamsFromHtml = txt => new URLSearchParams(
         .map(([_1, _2, name, _3, _4, value, _5]) => [
             name,
             value.replace(unescapeMapRegex, e => unescapeMap[e])]))
+
+/**
+ * @template T
+ * @param {() => Promise<T>} func 
+ * @param {(ret: T) => boolean} predicate 
+ * @returns {T}
+ */
+async function withRetry(func, predicate) {
+    let ret = await func()
+    let retryCnt = 3
+    while (!predicate(ret) && retryCnt-- > 0) {
+        await delay(3000)
+        ret = await func()
+    }
+    return ret
+}
 
 /**
  * @param {string} moodleId 
@@ -56,7 +73,7 @@ async function getPlayerOptions(moodleId) {
         body: launcherParams
     })
     // Finally,
-    const getPlayerOptionsRes = await fetch("https://mymedia.xmu.edu.cn/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {
+    const getPlayerOptionsRes = await withRetry(() => fetch("https://mymedia.xmu.edu.cn/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {
         method: 'post',
         body: JSON.stringify({
             getPlayerOptionsRequest: {
@@ -71,7 +88,7 @@ async function getPlayerOptions(moodleId) {
             'content-type': 'application/json'
         }
     })
-        .then(res => res.json())
+        .then(res => res.json()), r => r.d.PlayerPresentationStatus === 1)
 
     const {
         d: {

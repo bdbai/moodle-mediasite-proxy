@@ -43,12 +43,12 @@ async function withRetry(func, predicate) {
 }
 
 /**
- * @param {string} moodleId 
+ * @param {string} landingUrl
  */
-async function getPlayerOptions(moodleId) {
+async function getPlayerOptions(landingUrl) {
     // Moodle ID => Mediasite credentials
     /** @type {string} */
-    const moodleLandingTxt = await fetch(`https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${moodleId}&coverplay=1`, {
+    const moodleLandingTxt = await fetch(landingUrl, {
         credentials: 'include'
     })
         .then(res => res.text())
@@ -125,7 +125,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
     switch (type) {
         case 'getPlayerOptions':
-            getPlayerOptions(msg.moodleId).then(sendResponse)
+            const { moodleId, customLandingUrl } = msg
+            if (customLandingUrl) {
+                getPlayerOptions(customLandingUrl).then(sendResponse)
+            } else {
+                getPlayerOptions(`https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${moodleId}&coverplay=1`).then(sendResponse)
+            }
             return true
         case 'getWindowState':
             const gotState = currentWindow.state || 'maximized'

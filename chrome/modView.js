@@ -160,52 +160,7 @@ let defaultWindowState = 'maximized'
 
 !function () {
     collectFromGetPlayerOptions()
-    const $style = document.createElement('style')
-    $style.innerHTML = `
-    html.mediasite-proxy-fullscreen {
-        scrollbar-width: none; /* Hide scrollbar on Firefox */
-    }
 
-    .mediasite-proxy-fullscreen body::-webkit-scrollbar {
-        display: none;
-    }
-
-    .mediasite-proxy-play-control {
-        font-size: 0.8em;
-        position: absolute;
-        right: 8%;
-        background-color: #55555588;
-        color: white;
-        border-radius: 8%;
-        padding: 4px 10px;
-        margin: 4px;
-        cursor: pointer;
-        transition: text-shadow 0.4s;
-    }
-
-    .mediasite-proxy-play-control:hover {
-        text-shadow: 0 0 8px white;
-    }
-
-    .card-body.on-fullscreen .mediasite-proxy-play-control {
-        position: fixed;
-        top: 0;
-        right: 8px;
-        z-index: 1200;
-    }
-
-    .card-body.on-fullscreen #contentframe {
-        position: fixed;
-        width: 100%;
-        min-height: unset;
-        height: 100%;
-        top: 0;
-        left: 0;
-        z-index: 1100;
-        border: none;
-        border-radius: 0;
-    }`
-    document.head.appendChild($style)
     const $con = document.querySelector('#region-main .card-body')
 
     // Show prev/next

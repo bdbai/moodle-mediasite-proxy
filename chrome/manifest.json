@@ -32,6 +32,20 @@
       ],
       "js": [
         "modView.js"
+      ],
+      "css": [
+        "moodle.css"
+      ]
+    },
+    {
+      "matches": [
+        "https://l.xmu.edu.my/mod/folder/view.php?id=*"
+      ],
+      "js": [
+        "folderView.js"
+      ],
+      "css": [
+        "moodle.css"
       ]
     },
     {
@@ -40,6 +54,9 @@
       ],
       "js": [
         "courseView.js"
+      ],
+      "css": [
+        "moodle.css"
       ]
     }
   ],

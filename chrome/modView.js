@@ -2,10 +2,11 @@ function formatTime(seconds) {
     return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
 }
 
-const getAutoplaySettingAsync = () => new Promise((resolve, reject) =>
-    chrome.storage.sync.get({ autoplay: true }, ({ autoplay }) => {
-        resolve(autoplay)
-    }))
+/**
+ * @type {Promise<{ autoplay: boolean, extractInfo: boolean }>}
+ */
+const settingsAsync = new Promise((resolve, _reject) =>
+    chrome.storage.sync.get({ autoplay: true, extractInfo: true }, resolve))
 
 /**
  * @param {string} moodleId 
@@ -16,13 +17,8 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
     moodleId
 }, resolve))
 
-/**
- * @type {Promise<{ extractInfo: boolean }>}
- */
-const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.get({ extractInfo: true }, resolve))
-
 async function collectFromGetPlayerOptions() {
-    if (!await extractInfoAsync) {
+    if (!(await settingsAsync).extractInfo) {
         return
     }
     const id = location.search.match(/id=(\d+)/)[1]
@@ -125,7 +121,7 @@ window.addEventListener('message', async e => {
             return
         }
         if (data.event === 'playcoverready'
-            && await getAutoplaySettingAsync()
+            && (await settingsAsync).autoplay
             && document.referrer
             && document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')) {
             /** @type {HTMLIFrameElement} */

@@ -18,9 +18,10 @@ const getPlayerOptionsAsync = customLandingUrl => new Promise((resolve, _reject)
 let isFullscreen = false
 
 /**
- * @type {Promise<{ extractInfo: boolean }>}
+ * @type {Promise<boolean>}
  */
-const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.get({ extractInfo: true }, resolve))
+const extractInfoAsync = new Promise((resolve, _reject) =>
+    chrome.storage.sync.get({ extractInfo: true }, ({ extractInfo }) => resolve(extractInfo)))
 
 /**
  * 
@@ -172,6 +173,6 @@ async function collectFromGetPlayerOptions($a) {
  */
 !function () {
     // Collect information from GetPlayerOptions
-    extractInfoAsync.then(({ extractInfo }) => extractInfo
+    extractInfoAsync.then(extractInfo => extractInfo
         && Promise.all($mediaLis.map(collectFromGetPlayerOptions)))
 }()

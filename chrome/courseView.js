@@ -33,9 +33,10 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
 let isFullscreen = false
 
 /**
- * @type {Promise<{ extractInfo: boolean }>}
+ * @type {Promise<boolean>}
  */
-const extractInfoAsync = new Promise((resolve, _reject) => chrome.storage.sync.get({ extractInfo: true }, resolve))
+const extractInfoAsync = new Promise((resolve, _reject) =>
+    chrome.storage.sync.get({ extractInfo: true }, ({ extractInfo }) => resolve(extractInfo)))
 
 /**
  * 
@@ -200,7 +201,7 @@ async function collectFromGetPlayerOptions($li) {
 let defaultWindowState = 'maximized'
 !function () {
     // Collect information from GetPlayerOptions
-    extractInfoAsync.then(({ extractInfo }) => extractInfo
+    extractInfoAsync.then(extractInfo => extractInfo
         && Promise.all($mediaLis.map(collectFromGetPlayerOptions)))
 
     // Inject full screen btn

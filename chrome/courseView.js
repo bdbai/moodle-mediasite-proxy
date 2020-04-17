@@ -6,22 +6,6 @@ const $mediaLis = Array
     .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
 
 /**
- * @returns {Promise<string>}
- */
-const getWindowStateAsync = () => new Promise((resolve, _reject) => chrome.runtime.sendMessage({
-    type: 'getWindowState'
-}, resolve))
-
-/**
- *
- * @param {string} state
- */
-const setWindowState = state => chrome.runtime.sendMessage({
-    type: 'setWindowState',
-    state
-})
-
-/**
  * @param {string} moodleId 
  * @returns {Promise<any>}
  */
@@ -29,8 +13,6 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
     type: 'getPlayerOptions',
     moodleId
 }, resolve))
-
-let isFullscreen = false
 
 /**
  * @type {Promise<boolean>}
@@ -204,26 +186,9 @@ let defaultWindowState = 'maximized'
     extractInfoAsync.then(extractInfo => extractInfo
         && Promise.all($mediaLis.map(collectFromGetPlayerOptions)))
 
-    // Inject full screen btn
-    const cons = document.getElementsByClassName('mediasite-content')
-    for (const $con of Array.from(cons)) {
-        const $control = document.createElement('div')
-        $control.className = 'mediasite-proxy-play-control'
-        $control.innerText = 'Toggle full screen'
-        $control.addEventListener('click', async e => {
-            e.preventDefault()
-            const currentWindowState = await getWindowStateAsync()
-            if (isFullscreen) {
-                setWindowState(defaultWindowState)
-            } else {
-                setWindowState('fullscreen')
-                defaultWindowState = currentWindowState
-            }
-            isFullscreen = !isFullscreen
-            $con.classList.toggle('on-fullscreen')
-            document.documentElement.classList.toggle('mediasite-proxy-fullscreen')
-        })
-        $con.prepend($control)
+    // Allow Mediasite content iframes to enter fullscreen mode
+    for (const $iframe of document.querySelectorAll('iframe.mediasite-content-iframe')) {
+        $iframe.allowFullscreen = true
     }
 
     // Collect media titles and links

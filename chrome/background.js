@@ -1,11 +1,4 @@
 /**
- * @type {chrome.windows.Window}
- */
-let currentWindow = undefined
-
-chrome.windows.getCurrent(w => currentWindow = w)
-
-/**
  * @param {string} txt
  * @returns {string}
  */
@@ -120,9 +113,6 @@ async function getPlayerOptions(landingUrl) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const { type } = msg
-    if (typeof currentWindow === 'undefined') {
-        return
-    }
     switch (type) {
         case 'getPlayerOptions':
             const { moodleId, customLandingUrl } = msg
@@ -131,16 +121,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             } else {
                 getPlayerOptions(`https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${moodleId}&coverplay=1`).then(sendResponse)
             }
-            return true
-        case 'getWindowState':
-            const gotState = currentWindow.state || 'maximized'
-            sendResponse(gotState)
-            console.debug('getwindowstate', gotState)
-            break
-        case 'setWindowState':
-            console.debug('setwindowstate', msg)
-            const { state } = msg
-            chrome.windows.update(currentWindow.id, { state }, _w => sendResponse())
             return true
     }
 })

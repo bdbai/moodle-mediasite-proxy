@@ -15,8 +15,6 @@ const getPlayerOptionsAsync = customLandingUrl => new Promise((resolve, _reject)
     customLandingUrl
 }, resolve))
 
-let isFullscreen = false
-
 /**
  * @type {Promise<boolean>}
  */
@@ -168,9 +166,6 @@ async function collectFromGetPlayerOptions($a) {
     })
 }
 
-/**
- * @type {string}
- */
 !function () {
     // Collect information from GetPlayerOptions
     extractInfoAsync.then(extractInfo => extractInfo

@@ -120,6 +120,9 @@ window.addEventListener('message', async e => {
         } catch (syntaxErr) {
             return
         }
+
+        // Wait for 500 ms to let allowfullscreen attribute on
+        await delay(500)
         if (data.event === 'playcoverready'
             && (await settingsAsync).autoplay
             && document.referrer
@@ -131,32 +134,14 @@ window.addEventListener('message', async e => {
     }
 })
 
-/**
- * @returns {Promise<string>}
- */
-const getWindowStateAsync = () => new Promise((resolve, _reject) => chrome.runtime.sendMessage({
-    type: 'getWindowState'
-}, resolve))
-
-/**
- *
- * @param {string} state
- */
-const setWindowState = state => chrome.runtime.sendMessage({
-    type: 'setWindowState',
-    state
-})
-
-let isFullscreen = false
-
-/**
- * @type {string}
- */
-let defaultWindowState = 'maximized'
-
 !function () {
     collectFromGetPlayerOptions()
 
+    /** @type {HTMLIFrameElement} */
+    const $iframe = document.getElementById('contentframe')
+    if ($iframe) {
+        $iframe.allowFullscreen = true
+    }
     const $con = document.querySelector('#region-main .card-body')
 
     // Show prev/next
@@ -218,23 +203,4 @@ let defaultWindowState = 'maximized'
         $ul.appendChild($nextLi)
         $con.appendChild($ul)
     }
-
-    // Show toggle full screen button
-    const $control = document.createElement('div')
-    $control.className = 'mediasite-proxy-play-control'
-    $control.innerText = 'Toggle full screen'
-    $control.addEventListener('click', async e => {
-        e.preventDefault()
-        const currentWindowState = await getWindowStateAsync()
-        if (isFullscreen) {
-            setWindowState(defaultWindowState)
-        } else {
-            setWindowState('fullscreen')
-            defaultWindowState = currentWindowState
-        }
-        isFullscreen = !isFullscreen
-        $con.classList.toggle('on-fullscreen')
-        document.documentElement.classList.toggle('mediasite-proxy-fullscreen')
-    })
-    $con.prepend($control)
 }()

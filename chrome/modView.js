@@ -130,7 +130,7 @@ window.addEventListener('message', async e => {
             && document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')) {
             /** @type {HTMLIFrameElement} */
             const $iframe = document.querySelector('iframe.mediasite_lti_courses_iframe')
-            $iframe.contentWindow.postMessage({ type: 'play' }, 'https://xmum.mediasitecloud.jp')
+            $iframe.contentWindow.postMessage({ type: 'play' }, 'https://mymedia.xmu.edu.cn')
         }
     }
 })

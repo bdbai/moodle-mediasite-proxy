@@ -121,15 +121,16 @@ window.addEventListener('message', async e => {
             return
         }
 
-        // Wait for 500 ms to let allowfullscreen attribute on
-        await delay(500)
         if (data.event === 'playcoverready'
             && (await settingsAsync).autoplay
             && document.referrer
             && document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')) {
             /** @type {HTMLIFrameElement} */
-            const $iframe = document.querySelector('iframe.mediasite_lti_courses_iframe')
-            $iframe.contentWindow.postMessage({ type: 'play' }, 'https://mymedia.xmu.edu.cn')
+            const $iframe = document.getElementById('contentframe')
+            $iframe.allowFullscreen = true
+            setTimeout(() => {
+                $iframe.contentWindow.postMessage({ type: 'play' }, 'https://mymedia.xmu.edu.cn')
+            }, 500)
         }
     }
 })

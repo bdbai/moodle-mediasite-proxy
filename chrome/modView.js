@@ -1,3 +1,5 @@
+const MEDIASITE_ORIGIN = 'https://mymedia.xmu.edu.cn'
+
 function formatTime(seconds) {
     return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
 }
@@ -112,25 +114,34 @@ async function collectFromGetPlayerOptions() {
     $cardBody.appendChild($con)
 }
 
+// Avoid infinite refresh
+let refreshRequired = false
 window.addEventListener('message', async e => {
-    if (typeof e.data === 'string') {
-        let data = { event: '' }
-        try {
-            data = JSON.parse(e.data)
-        } catch (syntaxErr) {
-            return
+    if (e.origin === MEDIASITE_ORIGIN) {
+        let data = { event: '', type: '' }
+        if (typeof e.data === 'string') {
+            try {
+                data = JSON.parse(e.data)
+            } catch (syntaxErr) {
+                return
+            }
+        } else {
+            data = e.data
         }
 
+        /** @type {HTMLIFrameElement} */
+        const $iframe = document.getElementById('contentframe')
         if (data.event === 'playcoverready'
             && (await settingsAsync).autoplay
             && document.referrer
-            && document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')) {
-            /** @type {HTMLIFrameElement} */
-            const $iframe = document.getElementById('contentframe')
-            $iframe.allowFullscreen = true
+            && (document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')
+                || document.referrer.startsWith('https://l.xmu.edu.my/mod/mediasite/view.php'))) {
             setTimeout(() => {
-                $iframe.contentWindow.postMessage({ type: 'play' }, 'https://mymedia.xmu.edu.cn')
+                $iframe.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
             }, 500)
+        } else if (data.type === 'ensureEnableFullscreen' && !refreshRequired) {
+            refreshRequired = true
+            $iframe.contentWindow.postMessage({ type: 'refresh' }, MEDIASITE_ORIGIN)
         }
     }
 })

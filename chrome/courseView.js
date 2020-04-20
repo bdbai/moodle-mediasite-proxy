@@ -183,8 +183,18 @@ async function collectFromGetPlayerOptions($li) {
 let defaultWindowState = 'maximized'
 !function () {
     // Collect information from GetPlayerOptions
-    extractInfoAsync.then(extractInfo => extractInfo
-        && Promise.all($mediaLis.map(collectFromGetPlayerOptions)))
+    extractInfoAsync.then(extractInfo => {
+        if (!extractInfo) {
+            return
+        }
+        const observer = new IntersectionObserver(e => {
+            e
+                .filter(i => i.isIntersecting)
+                .map(i => i.target)
+                .forEach($li => (observer.unobserve($li), collectFromGetPlayerOptions($li)))
+        }, { threshold: 1.0 })
+        $mediaLis.forEach($li => observer.observe($li))
+    })
 
     // Allow Mediasite content iframes to enter fullscreen mode
     for (const $iframe of document.querySelectorAll('iframe.mediasite-content-iframe')) {

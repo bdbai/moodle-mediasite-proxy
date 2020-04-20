@@ -6,7 +6,7 @@ const localOrigin = 'http://127.0.0.1:10384'
 const localDictUrl = localOrigin + '/dict'
 
 let settings = defaultSettings
-getSettings().then(s => settings = s)
+getSettings().then(s => settings = s).then(onSettingsChanged)
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') {
@@ -19,9 +19,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
                 .entries(changes)
                 .map(([k, change]) => [k, change.newValue]))
     }
+    onSettingsChanged()
 })
 
-chrome.webRequest.onBeforeRequest.addListener(req => {
+/**
+ * @param {chrome.webRequest.WebRequestBodyDetails} req 
+ */
+function onBeforeRequestHandler(req) {
     if (settings.dictFw && req.url === dictUrl) {
         console.log('Redirect dict')
         return { redirectUrl: localDictUrl }
@@ -46,10 +50,24 @@ chrome.webRequest.onBeforeRequest.addListener(req => {
         + encodeURIComponent(req.url.replace(localOrigin, cfOrigin))
     console.log(`Redirect ${req.url} to ${redirectUrl}`)
     return { redirectUrl }
-}, {
-    urls: [
-        dictUrl,
-        'http://127.0.0.1/*', // Requests from m3u8 player
-        'https://myv.xmu.edu.cn/MediasiteDeliver/*'
-    ]
-}, ['blocking'])
+}
+
+let isListening = false
+function onSettingsChanged() {
+    const needFw = settings.dictFw || settings.manifestFw || settings.mediaFw
+    if (needFw && !isListening) {
+        chrome.webRequest.onBeforeRequest.addListener(onBeforeRequestHandler, {
+            urls: [
+                dictUrl,
+                'http://127.0.0.1/*', // Requests from m3u8 player
+                'https://myv.xmu.edu.cn/MediasiteDeliver/*'
+            ]
+        }, ['blocking'])
+        console.log('Request listener on')
+        isListening = true
+    } else if (!needFw && isListening) {
+        chrome.webRequest.onBeforeRequest.removeListener(onBeforeRequestHandler)
+        isListening = false
+        console.log('Request listener off')
+    }
+}

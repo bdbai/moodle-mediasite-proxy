@@ -1,3 +1,4 @@
+const MOODLE_ORIGIN = 'https://l.xmu.edu.my'
 window.addEventListener('message', e => {
     if (e.data && e.data.type === 'play') {
         document.querySelector('button.play-button').click()
@@ -46,26 +47,55 @@ async function attachFullscreen() {
 
         $enter.classList.remove('ui-state-disabled')
         $enter.classList.remove('enterFullscreen')
-        $enter.addEventListener('click', e => {
-            e.preventDefault()
-            $exit.classList.toggle('ui-state-disabled')
-            $enter.classList.toggle('ui-state-disabled')
-            window.parent.postMessage({ type: 'requestFullscreen', state: true }, 'https://l.xmu.edu.my')
-        })
-
         $exit.classList.remove('exitFullscreen')
-        $exit.addEventListener('click', e => {
+        /**
+         * @param {boolean} state 
+         * @returns {(e: MouseEvent) => void}
+         */
+        const onToggleFullscreen = state => e => {
             e.preventDefault()
             $exit.classList.toggle('ui-state-disabled')
             $enter.classList.toggle('ui-state-disabled')
-            window.parent.postMessage({ type: 'requestFullscreen', state: false }, 'https://l.xmu.edu.my')
-        })
+            window.parent.postMessage({ type: 'requestFullscreen', state }, MOODLE_ORIGIN)
+        }
+        $enter.addEventListener('click', onToggleFullscreen(true))
+        $exit.addEventListener('click', onToggleFullscreen(false))
+
     } else {
-        console.log('fullscreen are allowed or outside a iframe')
+        console.log('fullscreen allowed or outside a iframe')
     }
+}
+
+function listenOnDialog() {
+    function onTicketError() {
+        console.log('On ticket error')
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: 'requestFixCookie' }, MOODLE_ORIGIN)
+        }
+    }
+    const observer = new MutationObserver(e => {
+        for (const ev of e) {
+            for (const n of ev.addedNodes) {
+                if (n.getAttribute('aria-describedby') === 'MessageDisplay') {
+                    observer.disconnect()
+                    const $msg = document.getElementById('MessageDisplay')
+                    if ($msg.innerText === '数据库中不存在票证。'
+                        || $msg.innerText === 'The ticket does not exist in the database.') {
+                        onTicketError()
+                        return
+                    }
+                }
+            }
+        }
+    })
+    observer.observe(document.body, {
+        childList: true,
+        subtree: false
+    })
 }
 
 // Skip intermediate pages
 if (document.getElementsByTagName('main').length > 0) {
     attachFullscreen()
+    listenOnDialog()
 }

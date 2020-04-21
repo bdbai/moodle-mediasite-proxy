@@ -31,6 +31,7 @@
         "https://l.xmu.edu.my/mod/mediasite/view.php?id=*"
       ],
       "js": [
+        "pageCommon.js",
         "modView.js"
       ],
       "css": [
@@ -53,6 +54,7 @@
         "https://l.xmu.edu.my/course/view.php?id=*"
       ],
       "js": [
+        "pageCommon.js",
         "courseView.js"
       ],
       "css": [
@@ -71,6 +73,7 @@
     "storage",
     "webRequest",
     "webRequestBlocking",
+    "cookies",
     "https://mymedia.xmu.edu.cn/*",
     "https://myv.xmu.edu.cn/*",
     "http://127.0.0.1/*",

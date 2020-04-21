@@ -111,6 +111,12 @@ async function getPlayerOptions(landingUrl) {
     }
 }
 
+/**
+ * 
+ * @param {chrome.cookies.Details} cookie 
+ */
+const removeCookieAsync = cookie => new Promise((resolve, _reject) => chrome.cookies.remove(cookie, resolve))
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const { type } = msg
     switch (type) {
@@ -121,6 +127,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             } else {
                 getPlayerOptions(`https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${moodleId}&coverplay=1`).then(sendResponse)
             }
+            return true
+        case 'clearCookies':
+            chrome.cookies.getAll({ domain: 'mymedia.xmu.edu.cn', secure: true }, cookies =>
+                Promise
+                    .all(cookies.map(({ domain, name, path, storeId }) =>
+                        removeCookieAsync({ name, url: `https://${domain}${path}`, storeId })))
+                    .then(sendResponse))
             return true
     }
 })

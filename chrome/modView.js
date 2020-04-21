@@ -1,5 +1,3 @@
-const MEDIASITE_ORIGIN = 'https://mymedia.xmu.edu.cn'
-
 function formatTime(seconds) {
     return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
 }

@@ -25,3 +25,31 @@ li.mediasite details[open] + canvas.mediasite-proxy-portion {
 li.mediasite details h5 {
     margin-top: 1em;
 }
+
+.mediasite-proxy-dialog {
+    visibility: hidden;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0.5, 0.5, 0.5, 0.5);
+    z-index: 1030;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mediasite-proxy-dialog .dialog {
+    background-color: white;
+}
+
+.mediasite-proxy-dialog p.title {
+    font-size: 1.4em;
+}
+
+.mediasite-proxy-dialog p,
+.mediasite-proxy-dialog button
+{
+    margin: 1em;
+}

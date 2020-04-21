@@ -114,8 +114,6 @@ async function collectFromGetPlayerOptions() {
     $cardBody.appendChild($con)
 }
 
-// Avoid infinite refresh
-let refreshRequired = false
 window.addEventListener('message', async e => {
     if (e.origin === MEDIASITE_ORIGIN) {
         let data = { event: '', type: '' }
@@ -139,12 +137,20 @@ window.addEventListener('message', async e => {
             setTimeout(() => {
                 $iframe.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
             }, 500)
-        } else if (data.type === 'ensureEnableFullscreen' && !refreshRequired) {
-            refreshRequired = true
-            $iframe.contentWindow.postMessage({ type: 'refresh' }, MEDIASITE_ORIGIN)
+        } else if (data.type === 'requestFullscreen') {
+            if (data.state === true) {
+                $iframe.requestFullscreen()
+            } else if (document.fullscreen) {
+                document.exitFullscreen()
+            }
         }
     }
 })
+
+/**
+ * @param {number} ms 
+ */
+const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
 
 !function () {
     collectFromGetPlayerOptions()
@@ -152,6 +158,9 @@ window.addEventListener('message', async e => {
     /** @type {HTMLIFrameElement} */
     const $iframe = document.getElementById('contentframe')
     if ($iframe) {
+        if (typeof $iframe.allow === 'string') {
+            $iframe.allow += `; fullscreen ${MEDIASITE_ORIGIN}`
+        }
         $iframe.allowFullscreen = true
     }
     const $con = document.querySelector('#region-main .card-body')

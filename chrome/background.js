@@ -51,32 +51,24 @@ async function getPlayerOptions(landingUrl) {
     const coverPlayRes = await fetch(coverPlayUrl, {
         method: 'post',
         body: moodleLandingParams,
-        credentials: 'include'
+        credentials: 'omit'
     })
         .then(res => res.text())
     const launcherUrl = getActionFromHtml(coverPlayRes)
-    const launcherParams = getUrlSearchParamsFromHtml(coverPlayRes)
+    const authTicket = getUrlSearchParamsFromHtml(coverPlayRes).get('AuthTicket')
     const mediasiteId = moodleLandingParams.get('mediasiteid')
-    // Auth ticket => cookie stored
-    launcherParams.set('cookiesEnabled', true)
-    launcherParams.set('CookieSupport', true)
-    launcherParams.set('IsBetterCookieSupportForm', true)
-    await fetch(launcherUrl, {
-        method: 'post',
-        body: launcherParams
-    })
     // Finally,
     const getPlayerOptionsRes = await withRetry(() => fetch("https://mymedia.xmu.edu.cn/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {
         method: 'post',
         body: JSON.stringify({
             getPlayerOptionsRequest: {
                 ResourceId: mediasiteId,
-                QueryString: '',
+                QueryString: '?authTicket=' + authTicket,
                 UseScreenReader: false,
                 UrlReferrer: launcherUrl
             }
         }),
-        credentials: 'include',
+        credentials: 'omit',
         headers: {
             'content-type': 'application/json'
         }

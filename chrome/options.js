@@ -24,12 +24,32 @@ async function main() {
     Object
         .entries(settingKeyToId)
         .forEach(([k, v]) => {
+            /** @type {HTMLInputElement} */
             const $el = document.getElementById(v)
             $el.checked = settings[k]
             console.log(`Set ${k} to ${v}`)
-            $el.addEventListener('change', async _e => {
-                await saveSettingValue(k, $el.checked)
-            })
+            if (k.endsWith('Fw')) {
+                $el.addEventListener('change', _e => {
+                    if ($el.checked) {
+                        chrome.permissions.request({
+                            permissions: ['webRequest', 'webRequestBlocking'],
+                            origins: ['http://127.0.0.1/*', 'https://myv.xmu.edu.cn/*']
+                        }, granted => {
+                            if (granted) {
+                                saveSettingValue(k, granted)
+                            } else {
+                                $el.checked = false
+                            }
+                        })
+                    } else {
+                        return saveSettingValue(k, false)
+                    }
+                })
+            } else {
+                $el.addEventListener('change', _e => {
+                    return saveSettingValue(k, $el.checked)
+                })
+            }
         })
 }
 

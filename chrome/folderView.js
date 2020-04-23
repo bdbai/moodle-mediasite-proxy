@@ -4,7 +4,7 @@ function formatTime(seconds) {
 
 // TODO: replace this ad-hoc fragile solution
 const $mediaLis = Array
-    .from(document.querySelectorAll('#intro > div > div > div > div > a[href^="https://l.xmu.edu.my/mod/mediasite/content_launch.php?"]:first-child'))
+    .from(document.querySelectorAll('#intro div h3 + a[href^="https://l.xmu.edu.my/mod/mediasite/content_launch.php?"]'))
 
 /**
  * @param {string} moodleId 

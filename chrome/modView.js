@@ -108,7 +108,7 @@ async function collectFromGetPlayerOptions() {
         $con.appendChild($unwatchedList)
     }
 
-    const $cardBody = document.querySelector('#region-main .card-body')
+    const $cardBody = document.getElementById('maincontent').parentElement
     $cardBody.appendChild($con)
 }
 
@@ -161,7 +161,7 @@ const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
         }
         $iframe.allowFullscreen = true
     }
-    const $con = document.querySelector('#region-main .card-body')
+    const $con = document.getElementById('maincontent').parentElement
 
     // Show prev/next
     /** @type {HTMLAnchorElement} */

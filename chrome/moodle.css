@@ -26,6 +26,11 @@ li.mediasite details h5 {
     margin-top: 1em;
 }
 
+li.mediasite details .center {
+    display: block;
+    margin: 0 auto;
+}
+
 .mediasite-proxy-dialog {
     visibility: hidden;
     position: fixed;

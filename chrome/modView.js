@@ -1,13 +1,3 @@
-function formatTime(seconds) {
-    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
-}
-
-/**
- * @type {Promise<{ autoplay: boolean, extractInfo: boolean }>}
- */
-const settingsAsync = new Promise((resolve, _reject) =>
-    chrome.storage.sync.get({ autoplay: true, extractInfo: true }, resolve))
-
 /**
  * @param {string} moodleId 
  * @returns {Promise<any>}

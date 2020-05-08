@@ -1,9 +1,10 @@
-function formatTime(seconds) {
-    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
-}
-
 const $mediaLis = Array
     .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
+
+/**
+ * @type {(() => void)[]}
+ */
+const coverplayReadyCallbacks = []
 
 /**
  * @param {string} moodleId 
@@ -15,17 +16,21 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
 }, resolve))
 
 /**
- * @type {Promise<boolean>}
+ * @param {Element} $el 
  */
-const extractInfoAsync = new Promise((resolve, _reject) =>
-    chrome.storage.sync.get({ extractInfo: true }, ({ extractInfo }) => resolve(extractInfo)))
+function removeYuiIds($el) {
+    if ($el.id.startsWith('yui_')) {
+        $el.id = ''
+    }
+    Array.from($el.children).forEach(removeYuiIds)
+}
 
 /**
  * 
  * @param {Element} $li
  */
 async function collectFromGetPlayerOptions($li) {
-    if (!await extractInfoAsync) {
+    if (!(await settingsAsync).extractInfo) {
         return
     }
     const id = $li.id.substr(7) // module-76543
@@ -53,6 +58,43 @@ async function collectFromGetPlayerOptions($li) {
         $summary.appendChild($el)
     }
     $con.appendChild($summary)
+
+    // Append embedded player
+    if ($con.getElementsByTagName('iframe').length === 0) {
+        const $embedText = document.createElement('h5')
+        $embedText.innerText = 'Embedded Player'
+        const $btn = document.createElement('button')
+        $btn.innerText = 'Load Embedded Player'
+        $btn.className = 'center btn btn-primary'
+        $btn.addEventListener('click', async e => {
+            e.preventDefault()
+            const $player = document.createElement('iframe')
+            $player.allowFullscreen = true
+            $player.src = `https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${id}&coverplay=1`
+            $player.className = 'mediasite-content-iframe'
+            $con.classList.add('playing')
+            $btn.before($player)
+            $btn.remove()
+
+            if ((await settingsAsync).autoplay) {
+                coverplayReadyCallbacks.push(function cb() {
+                    setTimeout(() => {
+                        $player.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                    }, 500)
+                    setTimeout(() => {
+                        const index = coverplayReadyCallbacks.indexOf(cb)
+                        if (~index) {
+                            coverplayReadyCallbacks.splice(index, 1)
+                        }
+                    }, 0)
+                })
+            }
+        })
+
+        $con.appendChild($embedText)
+        $con.appendChild(document.createElement('hr'))
+        $con.appendChild($btn)
+    }
 
     // Append media info
     const $urlText = document.createElement('h5')
@@ -183,7 +225,7 @@ async function collectFromGetPlayerOptions($li) {
 let defaultWindowState = 'maximized'
 !function () {
     // Collect information from GetPlayerOptions
-    extractInfoAsync.then(extractInfo => {
+    settingsAsync.then(({ extractInfo }) => {
         if (!extractInfo) {
             return
         }
@@ -212,5 +254,14 @@ let defaultWindowState = 'maximized'
     })
     localStorage.setItem('mediasite_video_ids_' + courseId, JSON.stringify(titles))
 }()
+
+window.addEventListener('message', e => {
+    if (typeof e.data === 'string') {
+        const { event = '' } = JSON.parse(e.data)
+        if (event === 'playcoverready') {
+            coverplayReadyCallbacks.forEach(fn => fn())
+        }
+    }
+})
 
 console.log('Listening on messages')

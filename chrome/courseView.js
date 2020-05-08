@@ -33,6 +33,8 @@ async function collectFromGetPlayerOptions($li) {
     if (!(await settingsAsync).extractInfo) {
         return
     }
+    const $backup = $li.cloneNode(true)
+    removeYuiIds($backup)
     const id = $li.id.substr(7) // module-76543
     const {
         directUrls,
@@ -46,6 +48,13 @@ async function collectFromGetPlayerOptions($li) {
 
     const $con = document.createElement('details')
     const $summary = document.createElement('summary')
+
+    function reload() {
+        $li.before($backup)
+        // TODO: remove event listeners
+        $li.remove()
+        collectFromGetPlayerOptions($backup)
+    }
 
     const $a = $li.querySelector('a')
     $a.addEventListener('click', e => {
@@ -89,6 +98,13 @@ async function collectFromGetPlayerOptions($li) {
                     }, 0)
                 })
             }
+
+            // When the container collapses, reload
+            $summary.addEventListener('click', _e => {
+                if ($con.open) {
+                    reload()
+                }
+            })
         })
 
         $con.appendChild($embedText)

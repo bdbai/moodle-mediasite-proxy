@@ -86,16 +86,10 @@ async function collectFromGetPlayerOptions($li) {
             $btn.remove()
 
             if ((await settingsAsync).autoplay) {
-                coverplayReadyCallbacks.push(function cb() {
+                coverplayReadyCallbacks.push(() => {
                     setTimeout(() => {
                         $player.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
                     }, 500)
-                    setTimeout(() => {
-                        const index = coverplayReadyCallbacks.indexOf(cb)
-                        if (~index) {
-                            coverplayReadyCallbacks.splice(index, 1)
-                        }
-                    }, 0)
                 })
             }
 
@@ -276,6 +270,7 @@ window.addEventListener('message', e => {
         const { event = '' } = JSON.parse(e.data)
         if (event === 'playcoverready') {
             coverplayReadyCallbacks.forEach(fn => fn())
+            coverplayReadyCallbacks.splice(0, coverplayReadyCallbacks.length)
         }
     }
 })

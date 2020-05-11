@@ -239,11 +239,22 @@ let defaultWindowState = 'maximized'
         if (!extractInfo) {
             return
         }
+        /** @type {Map<string, number>} */
+        const videoEntryTimeouts = new Map()
         const observer = new IntersectionObserver(e => {
-            e
-                .filter(i => i.isIntersecting)
-                .map(i => i.target)
-                .forEach($li => (observer.unobserve($li), collectFromGetPlayerOptions($li)))
+            for (const entry of e) {
+                const targetId = entry.target.id
+                if (entry.isIntersecting) {
+                    videoEntryTimeouts.set(targetId, setTimeout(($li, targetId) => {
+                        observer.unobserve($li)
+                        collectFromGetPlayerOptions($li)
+                        videoEntryTimeouts.delete(targetId)
+                    }, 1000, entry.target, targetId))
+                } else if (videoEntryTimeouts.has(targetId)) {
+                    clearTimeout(videoEntryTimeouts.get(targetId))
+                    videoEntryTimeouts.delete(targetId)
+                }
+            }
         }, { threshold: 1.0 })
         $mediaLis.forEach($li => observer.observe($li))
     })

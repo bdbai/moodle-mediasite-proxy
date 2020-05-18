@@ -1,8 +1,14 @@
 const MOODLE_ORIGIN = 'https://l.xmu.edu.my'
 window.addEventListener('message', e => {
-    if (e.data && e.data.type === 'play') {
-        document.querySelector('button.play-button').click()
-        e.stopImmediatePropagation()
+    const { type = '' } = e.data
+    switch (type) {
+        case 'play':
+            document.querySelector('button.play-button').click()
+            e.stopImmediatePropagation()
+            break
+        case 'blank':
+            location.href = 'about:blank'
+            break
     }
 })
 

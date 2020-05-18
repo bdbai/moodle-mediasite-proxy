@@ -96,7 +96,9 @@ async function collectFromGetPlayerOptions($li) {
             // When the container collapses, reload
             $summary.addEventListener('click', _e => {
                 if ($con.open) {
-                    reload()
+                    // Unload the player page to manually trigger view report
+                    $player.contentWindow.postMessage({ type: 'blank' }, MEDIASITE_ORIGIN)
+                    setTimeout(reload, 200)
                 }
             })
         })

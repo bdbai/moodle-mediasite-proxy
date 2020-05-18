@@ -14,6 +14,11 @@ li.mediasite summary > div {
     width: 100%;
 }
 
+/* Make .mod-indent-outer 'positioned' for completion box to anchor */
+li.mediasite summary div.mod-indent-outer {
+    position: relative;
+}
+
 li.mediasite details {
     margin-left: 4em;
 }

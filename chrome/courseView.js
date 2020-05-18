@@ -19,7 +19,7 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
  * @param {Element} $el 
  */
 function removeYuiIds($el) {
-    if ($el.id.startsWith('yui_')) {
+    if (typeof $el.id === 'string' && $el.id.startsWith('yui_')) {
         $el.id = ''
     }
     Array.from($el.children).forEach(removeYuiIds)
@@ -88,7 +88,10 @@ async function collectFromGetPlayerOptions($li) {
             if ((await settingsAsync).autoplay) {
                 coverplayReadyCallbacks.push(() => {
                     setTimeout(() => {
-                        $player.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                        const $playerWindow = $player.contentWindow
+                        if ($playerWindow) {
+                            $playerWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                        }
                     }, 500)
                 })
             }

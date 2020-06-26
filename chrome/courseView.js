@@ -69,7 +69,7 @@ async function collectFromGetPlayerOptions($li) {
     $con.appendChild($summary)
 
     // Append embedded player
-    if ($con.getElementsByTagName('iframe').length === 0) {
+    {
         const $embedText = document.createElement('h5')
         $embedText.innerText = 'Embedded Player'
         const $btn = document.createElement('button')
@@ -244,6 +244,12 @@ let defaultWindowState = 'maximized'
         if (!extractInfo) {
             return
         }
+
+        // Remove builtin embedded player
+        for (const $mediasiteContent of document.querySelectorAll('li.mediasite .contentafterlink')) {
+            $mediasiteContent.remove()
+        }
+
         /** @type {Map<string, number>} */
         const videoEntryTimeouts = new Map()
         const observer = new IntersectionObserver(e => {

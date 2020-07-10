@@ -100,8 +100,35 @@ function listenOnDialog() {
     })
 }
 
+function listenOnControls() {
+    const observer = new MutationObserver(e => {
+        /** @type {HTMLButtonElement} */
+        const $rateBtn = document.querySelector('button.rate.ui-button')
+        if ($rateBtn) {
+            observer.disconnect()
+            $rateBtn.addEventListener('contextmenu', e => {
+                e.preventDefault()
+                const rate = parseFloat(prompt('Custom playback speed rate'))
+                if (!Number.isNaN(rate) && rate > 0.09 && rate < 15) {
+                    for (const $video of document.querySelectorAll('video')) {
+                        $video.playbackRate = rate
+                    }
+                }
+            })
+        }
+    })
+    const $playerContent = document.getElementById('PlayerContent')
+    if ($playerContent) {
+        observer.observe($playerContent, {
+            childList: true,
+            subtree: true
+        })
+    }
+}
+
 // Skip intermediate pages
 if (document.getElementsByTagName('main').length > 0) {
     attachFullscreen()
     listenOnDialog()
+    listenOnControls()
 }

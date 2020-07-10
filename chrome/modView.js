@@ -1,3 +1,5 @@
+let nextPageUrl = ''
+
 /**
  * @param {string} moodleId 
  * @returns {Promise<any>}
@@ -123,7 +125,10 @@ window.addEventListener('message', async e => {
             && (document.referrer.startsWith('https://l.xmu.edu.my/course/view.php')
                 || document.referrer.startsWith('https://l.xmu.edu.my/mod/mediasite/view.php'))) {
             setTimeout(() => {
-                $iframe.contentWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                $iframe.contentWindow.postMessage({
+                    type: 'play',
+                    continuousPlayEnabled: true
+                }, MEDIASITE_ORIGIN)
             }, 500)
         } else if (data.type === 'requestFullscreen') {
             if (data.state === true) {
@@ -131,6 +136,8 @@ window.addEventListener('message', async e => {
             } else if (document.fullscreen) {
                 document.exitFullscreen()
             }
+        } else if (data.type === 'jumpNext' && nextPageUrl) {
+            location.href = nextPageUrl
         }
     }
 })
@@ -147,7 +154,7 @@ const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
     const $iframe = document.getElementById('contentframe')
     if ($iframe) {
         if (typeof $iframe.allow === 'string') {
-            $iframe.allow += `; fullscreen ${MEDIASITE_ORIGIN}`
+            $iframe.allow += `; autoplay ${MEDIASITE_ORIGIN}; fullscreen ${MEDIASITE_ORIGIN}`
         }
         $iframe.allowFullscreen = true
     }
@@ -193,7 +200,8 @@ const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
             const [id, name] = titles[videoIndex + 1]
             /** @type {HTMLAnchorElement} */
             const $link = document.createElement('a')
-            $link.href = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
+            nextPageUrl = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
+            $link.href = nextPageUrl
             $link.classList.add('page-link')
             const $icon = document.createElement('i')
             $icon.className = 'icon fa fa-chevron-right fa-fw '

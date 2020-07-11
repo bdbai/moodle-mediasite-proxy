@@ -206,6 +206,14 @@ function listenOnControls() {
         const $rateBtn = document.querySelector('button.rate.ui-button')
         if (!rateBtnListening && $rateBtn) {
             rateBtnListening = true
+            $rateBtn.addEventListener('mouseenter', function rateBtnMouseEnter(_e) {
+                if ($rateBtn.title === '调整播放速率') {
+                    $rateBtn.title += '（右键自定义）'
+                } else {
+                    $rateBtn.title += ' (Right click to customize playback rate)'
+                }
+                $rateBtn.removeEventListener('mouseenter', rateBtnMouseEnter)
+            })
             $rateBtn.addEventListener('contextmenu', e => {
                 e.preventDefault()
                 const rate = parseFloat(prompt('Custom playback speed rate'))

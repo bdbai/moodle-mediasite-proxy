@@ -1,4 +1,5 @@
-let nextPageUrl = ''
+/** @type {HTMLAnchorElement | undefined} */
+let $nextPageLink = undefined
 
 /**
  * @param {string} moodleId 
@@ -136,8 +137,8 @@ window.addEventListener('message', async e => {
             } else if (document.fullscreen) {
                 document.exitFullscreen()
             }
-        } else if (data.type === 'jumpNext' && nextPageUrl) {
-            location.href = nextPageUrl
+        } else if (data.type === 'jumpNext' && $nextPageLink) {
+            $nextPageLink.click()
         }
     }
 })
@@ -200,13 +201,13 @@ const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
             const [id, name] = titles[videoIndex + 1]
             /** @type {HTMLAnchorElement} */
             const $link = document.createElement('a')
-            nextPageUrl = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
-            $link.href = nextPageUrl
+            $link.href = 'https://l.xmu.edu.my/mod/mediasite/view.php?id=' + id.toString()
             $link.classList.add('page-link')
             const $icon = document.createElement('i')
             $icon.className = 'icon fa fa-chevron-right fa-fw '
             $link.appendChild(document.createTextNode(name))
             $link.appendChild($icon)
+            $nextPageLink = $link
             $nextLi.appendChild($link)
         } else {
             $nextLi.classList.add('disabled')

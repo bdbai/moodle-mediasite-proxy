@@ -216,11 +216,14 @@ function listenOnControls() {
             })
             $rateBtn.addEventListener('contextmenu', e => {
                 e.preventDefault()
-                const rate = parseFloat(prompt('Custom playback speed rate'))
-                if (!Number.isNaN(rate) && rate > 0.09 && rate < 15) {
-                    for (const $video of document.querySelectorAll('video')) {
-                        $video.playbackRate = rate
-                    }
+                const $video = document.querySelector('video')
+                if (!$video) {
+                    return
+                }
+                const originalRate = Math.round($video.playbackRate * 100) / 100
+                const rate = parseFloat(prompt('Custom playback speed rate', originalRate.toString()))
+                if (!Number.isNaN(rate) && rate > 0.09 && rate <= 15) {
+                    $video.playbackRate = rate
                 }
             })
         }

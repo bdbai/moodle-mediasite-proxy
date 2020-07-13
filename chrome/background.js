@@ -91,6 +91,8 @@ async function getPlayerOptions(landingUrl) {
         .map(s => s.VideoUrls[0].Location)
     const slideStreams = streams
         .filter(s => s.StreamType === 2)
+    const thumbnailStream = streams.find(s => s.ThumbnailUrl)
+
     return {
         type: 'getPlayerOptions',
         directUrls,
@@ -99,7 +101,9 @@ async function getPlayerOptions(landingUrl) {
         mediasiteId,
         coverages,
         duration,
-        bookmark
+        bookmark,
+        thumbnail: thumbnailStream
+            && 'https://mymedia.xmu.edu.cn' + thumbnailStream.ThumbnailUrl
     }
 }
 

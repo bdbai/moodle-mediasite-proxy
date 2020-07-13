@@ -30,7 +30,8 @@ function removeYuiIds($el) {
  * @param {Element} $li
  */
 async function collectFromGetPlayerOptions($li) {
-    if (!(await settingsAsync).extractInfo) {
+    const { extractInfo, showThumbnail } = await settingsAsync
+    if (!extractInfo) {
         return
     }
     const $backup = $li.cloneNode(true)
@@ -43,7 +44,8 @@ async function collectFromGetPlayerOptions($li) {
         mediasiteId,
         coverages, // second!
         duration,
-        bookmark // second!
+        bookmark, // second!
+        thumbnail
     } = await getPlayerOptionsAsync(id)
 
     const $con = document.createElement('details')
@@ -64,7 +66,27 @@ async function collectFromGetPlayerOptions($li) {
 
     for (const $el of Array.from($li.childNodes)) {
         $li.removeChild($el)
+        $el.classList.add('item-header')
         $summary.appendChild($el)
+    }
+    if (showThumbnail && thumbnail) {
+        const $thumbCon = document.createElement('div')
+        const $thumb = document.createElement('img')
+        $thumbCon.appendChild($thumb)
+        if (typeof $thumb.loading === 'string') {
+            $thumb.loading = 'lazy'
+        }
+        $thumbCon.className = 'thumbnail'
+        // Load image through fetch with cookie `ASP.NET_SessionId` omitted.
+        // Otherwise, we will get a 401.
+        fetch(thumbnail, { credentials: 'omit' })
+            .then(res => res.blob())
+            .then(res => URL.createObjectURL(res))
+            .then(url => {
+                $thumb.src = url
+                $summary.appendChild($thumbCon)
+            })
+            .catch(err => console.error(err))
     }
     $con.appendChild($summary)
 

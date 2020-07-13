@@ -8,15 +8,52 @@ li.mediasite summary {
     display: flex;
     align-items: center;
     margin-left: -4em;
+    /* Position this element to let thumbnail bottom: 100% work */
+    position: relative;
 }
 
-li.mediasite summary > div {
+li.mediasite summary > div.item-header {
     width: 100%;
+}
+
+li.mediasite summary:focus > div.item-header {
+    outline: auto;
 }
 
 /* Make .mod-indent-outer 'positioned' for completion box to anchor */
 li.mediasite summary div.mod-indent-outer {
     position: relative;
+}
+
+li.mediasite summary .thumbnail {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    z-index: 100;
+    padding: 1em;
+    margin-bottom: 6px;
+    background: white;
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: 5px 5px 6px #e7e7e7;
+    border-radius: 1em;
+    overflow: hidden;
+
+    transition: opacity, 0.2s, visibility;
+}
+
+li.mediasite summary {
+    outline: unset;
+}
+
+li.mediasite summary .thumbnail > img {
+    max-width: 30vw;
+    max-height: 30vh;
+}
+
+li.mediasite summary:hover .thumbnail {
+    opacity: 0.9;
+    visibility: visible;
 }
 
 li.mediasite details {

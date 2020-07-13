@@ -5,10 +5,18 @@ function formatTime(seconds) {
 }
 
 /**
- * @type {Promise<{ autoplay: boolean, extractInfo: boolean }>}
+ * @type {Promise<{
+ *  autoplay: boolean,
+ *  extractInfo: boolean,
+ *  showThumbnail: boolean
+ * }>}
  */
 const settingsAsync = new Promise((resolve, _reject) =>
-    chrome.storage.sync.get({ autoplay: true, extractInfo: true }, resolve))
+    chrome.storage.sync.get({
+        autoplay: true,
+        extractInfo: true,
+        showThumbnail: true
+    }, resolve))
 
 /**
  * @param {EventTarget} $el 

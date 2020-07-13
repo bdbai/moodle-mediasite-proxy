@@ -3,7 +3,8 @@
  *   dictFw: boolean,
  *   manifestFw: boolean,
  *   mediaFw: boolean,
- *   extractInfo: boolean
+ *   extractInfo: boolean,
+ *   showThumbnail: boolean
  * }} Setting
  */
 
@@ -17,6 +18,7 @@ export const defaultSettings = {
     mediaFw: false,
     extractInfo: true,
     autoplay: true,
+    showThumbnail: true,
 }
 
 /**

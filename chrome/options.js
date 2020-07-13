@@ -17,6 +17,7 @@ const settingKeyToId = {
     mediaFw: 'media-fw-box',
     extractInfo: 'extract-info-box',
     autoplay: 'autoplay-box',
+    showThumbnail: 'show-thumbnail-box'
 }
 
 async function main() {

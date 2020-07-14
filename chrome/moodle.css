@@ -35,11 +35,26 @@ li.mediasite summary .thumbnail {
     background: white;
     opacity: 0;
     visibility: hidden;
-    box-shadow: 5px 5px 6px #e7e7e7;
+    box-shadow: rgb(231, 231, 231) 0 0 10px 4px;
     border-radius: 1em;
     overflow: hidden;
 
-    transition: opacity, 0.2s, visibility;
+    transition: opacity 0.3s, visibility;
+}
+
+li.mediasite:hover .thumbnail {
+    opacity: 0.9;
+    visibility: visible;
+}
+
+li.mediasite details:hover .thumbnail {
+    opacity: 0;
+    visibility: hidden;
+}
+
+li.mediasite details > summary:hover .thumbnail {
+    opacity: 0.9;
+    visibility: visible;
 }
 
 li.mediasite summary {
@@ -49,11 +64,6 @@ li.mediasite summary {
 li.mediasite summary .thumbnail > img {
     max-width: 30vw;
     max-height: 30vh;
-}
-
-li.mediasite summary:hover .thumbnail {
-    opacity: 0.9;
-    visibility: visible;
 }
 
 li.mediasite details {

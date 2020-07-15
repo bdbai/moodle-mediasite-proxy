@@ -4,12 +4,15 @@ const PLAYBACK_RATE_SESSION_KEY = 'playbackRate'
 const FULLSCREEN_SESSION_KEY = 'fullscreen'
 let autoPlayEnabled = false
 let continuousPlayEnabled = false
+/** @type {boolean | undefined} */
+let hasNextPage = undefined
 window.addEventListener('message', e => {
     const { type = '' } = e.data
     switch (type) {
         case 'play':
             autoPlayEnabled = true
             continuousPlayEnabled = e.data.continuousPlayEnabled
+            hasNextPage = e.data.hasNextPage
             document.querySelector('button.play-button').click()
             e.stopImmediatePropagation()
             break
@@ -190,7 +193,9 @@ function listenOnPlaybackEnd($player) {
             ended = true
             if (!btnInjected) {
                 btnInjected = true
-                if (sessionStorage.getItem(CONTINUOUS_PLAY_ON_SESSION_KEY)) {
+                if (hasNextPage === false) {
+                    sessionStorage.removeItem(CONTINUOUS_PLAY_ON_SESSION_KEY)
+                } else if (sessionStorage.getItem(CONTINUOUS_PLAY_ON_SESSION_KEY)) {
                     injectWhenContinuousPlayOn()
                 } else {
                     injectWhenContinuousPlayOff()

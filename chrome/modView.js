@@ -128,7 +128,8 @@ window.addEventListener('message', async e => {
             setTimeout(() => {
                 $iframe.contentWindow.postMessage({
                     type: 'play',
-                    continuousPlayEnabled: true
+                    continuousPlayEnabled: true,
+                    hasNextPage: !!$nextPageLink
                 }, MEDIASITE_ORIGIN)
             }, 500)
         } else if (data.type === 'requestFullscreen') {

@@ -265,11 +265,9 @@ function listenOnControls() {
 
             const initialFullscreen = sessionStorage.getItem(FULLSCREEN_SESSION_KEY) === '1'
             if (autoPlayEnabled && initialFullscreen && document.fullscreenEnabled) {
-                try {
-                    document.documentElement.requestFullscreen()
-                } catch (_e) {
+                document.documentElement.requestFullscreen().catch(_e => {
                     // FullScreen error, user gesture is not present
-                }
+                })
             }
             document.addEventListener('fullscreenchange', _e => {
                 if (document.fullscreenElement) {

@@ -247,6 +247,22 @@ function listenOnControls() {
                     sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, $video.playbackRate.toString())
                 })
             }
+
+            const initialFullscreen = sessionStorage.getItem(FULLSCREEN_SESSION_KEY) === '1'
+            if (autoPlayEnabled && initialFullscreen && document.fullscreenEnabled) {
+                try {
+                    document.documentElement.requestFullscreen()
+                } catch (_e) {
+                    // FullScreen error, user gesture is not present
+                }
+            }
+            document.addEventListener('fullscreenchange', _e => {
+                if (document.fullscreenElement) {
+                    sessionStorage.setItem(FULLSCREEN_SESSION_KEY, '1')
+                } else {
+                    sessionStorage.removeItem(FULLSCREEN_SESSION_KEY)
+                }
+            })
         }
         if (rateBtnListening && videoListening) {
             if (continuousPlayEnabled) {

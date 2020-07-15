@@ -1,6 +1,7 @@
 const MOODLE_ORIGIN = 'https://l.xmu.edu.my'
 const CONTINUOUS_PLAY_ON_SESSION_KEY = 'continuousPlayOn'
 const PLAYBACK_RATE_SESSION_KEY = 'playbackRate'
+const FULLSCREEN_SESSION_KEY = 'fullscreen'
 let autoPlayEnabled = false
 let continuousPlayEnabled = false
 window.addEventListener('message', e => {
@@ -138,12 +139,19 @@ function listenOnPlaybackEnd($player) {
         const $btnCon = document.querySelector('div.modals div.preso-ended-buttons')
         $btnCon.style.display = 'flex'
         /** @type {HTMLButtonElement} */
-        const $btn = $btnCon.children[0].cloneNode(false)
-        $btn.innerHTML = '<span class="ui-blur-image" style="width: 30px;height: 30px;"><img class="foreground" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAABmUlEQVRoge2Zv0oEMRCHvxMFwep6/1W2lnIccncPYWGhvoKdlXilhU8gKCiC4FMIImppY2MlV1haCYLgWQRB4+2wm5vZ7C35IEUgOzs/kl8mJJBIJBKTRCPHmB6wBSwY55LFADgHrscJ0geGFWkHoSJ6FUjeb52sZKcEIdvFdJdCZk7TwkeLXv+SMddpAF1g81d/OWugJMSfrVvgODilMGb4KyRzBUlLa6JIQqpGEjKCJjCrGK8QmkJWgWfcXp/n6KOK9tKaB86AO6ClHFvEyiNruLpzxf/CaoKl2RvABvCEO3ya+qeMXWsOd3I19U+Z26+pf2LUERP/xCqI6v6pTWWXjvGWDIELYA941QgYQ8gDsAvcawYtc2kNgB3cjqUqAsqZkXfgCDgEPqx+YilE3QcSVkJMfCCh7RFTH0hozsgjsIKhDyQ0hbwpxipMbSp7ElI1aiNEMvuX128Dn4a5jKLt9f2ccnFK/PcQv52ECOlWIHG/rYcIAXdpEDv5n7YvJZrnRqODewxdyjHWghfcpcVNpP8nEomEAd9uVeQZz4WbQgAAAABJRU5ErkJggg==" alt="" style="filter: invert(1);"><img class="background double-background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"><img class="background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"></span><span class="ui-button-text">Stop Autoplay (<span class="countdown">10</span>)</span>'
+        const $cancelBtn = $btnCon.children[0].cloneNode(false)
+        $cancelBtn.innerHTML = '<span class="ui-blur-image" style="width: 30px;height: 30px;"><img class="foreground" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAADZklEQVRoge2ZTU8UQRCGH3HFwHoQcU0E7h5cvPDl2Z9giHvQAyQEPRIuxqjJHlCufqD+AUgkxsSPu39A4WBMQDwRWKLZmACaBSMRDzVrhpqeoWemd5W4b9KH3a166+3Z6a6uamiggf8bhxzxNAH9wAWgBzgDdADHvN+/A2vAIjAHvAHeAr8cxU+MLmASWAF2Y44V4C7QWXfVQDvwGPhhKTZqbAOPgBP1El8Ayg6E61EGLtVSeAZ56mEC1oFpYAToA3LAEW/kvO9GgBlgI4JnyovlFC3A65CAC8CQZxOHbxhZ1CbOVzH5IpHBLL4CjJHuaWWAcY9L879Myf0HTwzkq0CvC3IPfUDJEOdhWuKCgXQe2eNdo8Pj1vEGkxK2E9xtVqmN+CpywJKK+QVoS0Kmd5wK4a/N2QT8YT55gmviQVzyLiTB+EnGQmyLwE/kdbNFwfMphvx+U8XeIuY/P6kIFjDvCEWfje0kquKrfkWDTZbgor5jK76J4NlmyGCXV0JsJqHFV33yBturym7Z07YvzivHdcKTSpgg0yTi2AK0ApvKvs9mAjeU0/Q+9jbC4oqv4qnyuW4zgefKacTCJ0pgUvEAo8rvmc0EPpDgb4sQmlQ8wIDyfW/j9FU5nbQMBuZJJBUPcEr5l22cdJHSHCMgSOo3TWIHuByT66ji2NYGVttSTETV2a5q8Egc+FdIL+J+y2C1WMQ6JwUWsekV+qg+n7MIVEDyhf+4sQNc8caO7/uMZ2szCR1bazNCJ7KZfexrmchmlY9VItN77wZ/5yiRBb4pe6sq0HSYGzbY1fowd03ZWR/mQDpmfudF6n+cXlMaJmzFg7T7dEEzHmJbxH1Bc1vFjl3QgLT7/CQVws9FLkvKboIl5f0E/MaivkTti/pPKmbioh6kV6mz6bwXyDVySOtdx7uYlnjKQLqEeedIim6CT34XuOeCPIP0KjV5BekeZFNwZ4FbmFuLL4DDKbj3oAXpVZoOaCWkAG+NwdeK7PN6q/SLd9bcrSKD9CrDTpqbSA07imTzHFJLNCOnygFkorMEM6zecZw9eRMGkZ0hTEDS8RkHC9YWbUi7Tye7JGMLeerH6yXejw6kY7ZsKVafbSaA02kEuLxm7UGuWXuRa9ZO9l6zriLb7zvkmnWOf+CatYEGDjp+A0qqSHjEVq9qAAAAAElFTkSuQmCC" alt="" style="filter: invert(1);"><img class="background double-background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"><img class="background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"></span><span class="ui-button-text">Stop Autoplay</span>'
+
+        /** @type {HTMLButtonElement} */
+        const $nextBtn = $btnCon.children[0].cloneNode(false)
+        $nextBtn.innerHTML = '<span class="ui-blur-image" style="width: 30px;height: 30px;"><img class="foreground" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAABmUlEQVRoge2Zv0oEMRCHvxMFwep6/1W2lnIccncPYWGhvoKdlXilhU8gKCiC4FMIImppY2MlV1haCYLgWQRB4+2wm5vZ7C35IEUgOzs/kl8mJJBIJBKTRCPHmB6wBSwY55LFADgHrscJ0geGFWkHoSJ6FUjeb52sZKcEIdvFdJdCZk7TwkeLXv+SMddpAF1g81d/OWugJMSfrVvgODilMGb4KyRzBUlLa6JIQqpGEjKCJjCrGK8QmkJWgWfcXp/n6KOK9tKaB86AO6ClHFvEyiNruLpzxf/CaoKl2RvABvCEO3ya+qeMXWsOd3I19U+Z26+pf2LUERP/xCqI6v6pTWWXjvGWDIELYA941QgYQ8gDsAvcawYtc2kNgB3cjqUqAsqZkXfgCDgEPqx+YilE3QcSVkJMfCCh7RFTH0hozsgjsIKhDyQ0hbwpxipMbSp7ElI1aiNEMvuX128Dn4a5jKLt9f2ccnFK/PcQv52ECOlWIHG/rYcIAXdpEDv5n7YvJZrnRqODewxdyjHWghfcpcVNpP8nEomEAd9uVeQZz4WbQgAAAABJRU5ErkJggg==" alt="" style="filter: invert(1);"><img class="background double-background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"><img class="background" alt="" style="display: none; position: absolute; inset: -10px; width: 20px; height: 50px;"></span><span class="ui-button-text">Next (<span class="countdown">10</span>)</span>'
+        $nextBtn.addEventListener('click', _e => {
+            window.parent.postMessage({ type: 'jumpNext' }, MOODLE_ORIGIN)
+        })
 
         enterPresentationEnded = () => {
             /** @type {HTMLSpanElement} */
-            const $countdown = $btn.getElementsByClassName('countdown')[0]
+            const $countdown = $nextBtn.getElementsByClassName('countdown')[0]
             let secondsRemaining = 10
             $countdown.innerText = secondsRemaining.toString()
             const countdownHandle = setInterval(() => {
@@ -160,18 +168,20 @@ function listenOnPlaybackEnd($player) {
             const cancelBtnClick = _e => {
                 clearInterval(countdownHandle)
                 sessionStorage.removeItem(CONTINUOUS_PLAY_ON_SESSION_KEY)
-                $btn.remove()
+                $cancelBtn.remove()
+                $nextBtn.remove()
                 injectWhenContinuousPlayOff()
             }
-            $btn.addEventListener('click', cancelBtnClick)
+            $cancelBtn.addEventListener('click', cancelBtnClick)
 
             leavePresentationEnded = () => {
                 clearInterval(countdownHandle)
-                $btn.removeEventListener('click', cancelBtnClick)
+                $cancelBtn.removeEventListener('click', cancelBtnClick)
             }
         }
 
-        $btnCon.appendChild($btn)
+        $btnCon.appendChild($nextBtn)
+        $btnCon.appendChild($cancelBtn)
     }
 
     let ended = false, btnInjected = false

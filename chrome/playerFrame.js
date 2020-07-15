@@ -255,22 +255,46 @@ function listenOnControls() {
         if (!videoListening && $video) {
             videoListening = true
             $video.autoplay = autoPlayEnabled
+            /**
+             * @param {Event} _e 
+             */
+            const onRateChange = _e => {
+                sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, $video.playbackRate.toString())
+            }
             const initialPlaybackRate = parseFloat(sessionStorage.getItem(PLAYBACK_RATE_SESSION_KEY))
             if (!Number.isNaN(initialPlaybackRate)) {
                 $video.addEventListener('playing', function videoPlaying(_e) {
+                    // To prevent playback rate to be changed back in 1000 ms
+                    /**
+                     * @param {Event} e
+                     */
+                    function onUnintendedPlaybackRateChange(_e) {
+                        if (Math.abs($video.playbackRate - initialPlaybackRate) > 0.001) {
+                            $video.playbackRate = initialPlaybackRate
+                        }
+                    }
+                    $video.addEventListener('ratechange', onUnintendedPlaybackRateChange)
+                    $video.playbackRate = initialPlaybackRate
                     setTimeout(() => {
-                        $video.playbackRate = initialPlaybackRate
-                        $video.addEventListener('ratechange', _e => {
-                            sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, $video.playbackRate.toString())
-                        })
-                    }, 400)
+                        $video.removeEventListener('ratechange', onUnintendedPlaybackRateChange)
+                        $video.addEventListener('ratechange', onRateChange)
+                    }, 1000)
                     $video.removeEventListener('playing', videoPlaying)
                 })
             } else {
-                $video.addEventListener('ratechange', _e => {
-                    sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, $video.playbackRate.toString())
-                })
+                $video.addEventListener('ratechange', onRateChange)
             }
+
+            // To prevent playback rate to be changed back after seeked
+            $video.addEventListener('seeked', function prepareChangeBackRate(_e) {
+                const originalPlaybackRate = $video.playbackRate
+                $video.addEventListener('playing', function changeBackRate(_e) {
+                    $video.playbackRate = originalPlaybackRate
+                    $video.removeEventListener('playing', changeBackRate)
+                    $video.addEventListener('seeked', prepareChangeBackRate)
+                })
+                $video.removeEventListener('seeked', prepareChangeBackRate)
+            })
 
             const initialFullscreen = sessionStorage.getItem(FULLSCREEN_SESSION_KEY) === '1'
             if (autoPlayEnabled && initialFullscreen && document.fullscreenEnabled) {

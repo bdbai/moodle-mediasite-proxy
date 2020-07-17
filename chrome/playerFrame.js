@@ -240,21 +240,51 @@ function listenOnControls() {
             })
             $rateBtn.addEventListener('contextmenu', e => {
                 e.preventDefault()
-                const $video = document.querySelector('video')
-                if (!$video) {
+                const $videos = document.querySelectorAll('video')
+                if (!$videos) {
                     return
                 }
-                const originalRate = Math.round($video.playbackRate * 100) / 100
+                const originalRate = Math.round($videos[0].playbackRate * 100) / 100
                 const rate = parseFloat(prompt('Custom playback speed rate', originalRate.toString()))
-                if (!Number.isNaN(rate) && rate > 0.09 && rate <= 15) {
-                    $video.playbackRate = rate
+                if (!Number.isNaN(rate) && rate > 0.09 && rate < 15.1) {
+                    $videos.forEach($v => $v.playbackRate = rate)
                 }
             })
         }
-        const $video = document.querySelector('video')
+        const $videos = Array.from(document.getElementsByTagName('video'))
+        /** @type {HTMLVideoElement | undefined} */
+        const $video = $videos[0]
+
         if (!videoListening && $video) {
             videoListening = true
-            $video.autoplay = autoPlayEnabled
+
+            // When all videos are ready, play them.
+            // `autoplay` property is not used because:
+            // 1. The playback status indicator stays in 'Paused'
+            //    even when the playback has started;
+            // 2. In case of multiple video streams, we leave the
+            //    synchronization work to the player's implementation.
+            Promise.all($videos.map($v => new Promise((resolve, _reject) => {
+                $v.addEventListener('canplay', function videoCanplay(_e) {
+                    $v.removeEventListener('canplay', videoCanplay)
+                    resolve()
+                })
+            }))).then(() => {
+                const $playerCon = document.querySelector('div.player')
+                if (
+                    !autoPlayEnabled
+                    || !$playerCon
+                    || $playerCon.classList.contains('presentation-playing')
+                ) {
+                    return
+                }
+                /** @type {HTMLButtonElement | null} */
+                const $playBtn = $playerCon.querySelector('button.play.ui-button')
+                $playBtn && $playBtn.click()
+            })
+
+            // Set initial playback rate (if any) and
+            // listen for corresponding events.
             /**
              * @param {Event} _e 
              */
@@ -270,11 +300,11 @@ function listenOnControls() {
                      */
                     function onUnintendedPlaybackRateChange(_e) {
                         if (Math.abs($video.playbackRate - initialPlaybackRate) > 0.001) {
-                            $video.playbackRate = initialPlaybackRate
+                            $videos.forEach($v => $v.playbackRate = initialPlaybackRate)
                         }
                     }
                     $video.addEventListener('ratechange', onUnintendedPlaybackRateChange)
-                    $video.playbackRate = initialPlaybackRate
+                    $videos.forEach($v => $v.playbackRate = initialPlaybackRate)
                     setTimeout(() => {
                         $video.removeEventListener('ratechange', onUnintendedPlaybackRateChange)
                         $video.addEventListener('ratechange', onRateChange)
@@ -289,17 +319,20 @@ function listenOnControls() {
             $video.addEventListener('seeked', function prepareChangeBackRate(_e) {
                 const originalPlaybackRate = $video.playbackRate
                 $video.addEventListener('playing', function changeBackRate(_e) {
-                    $video.playbackRate = originalPlaybackRate
+                    $videos.forEach($v => $v.playbackRate = originalPlaybackRate)
                     $video.removeEventListener('playing', changeBackRate)
                     $video.addEventListener('seeked', prepareChangeBackRate)
                 })
                 $video.removeEventListener('seeked', prepareChangeBackRate)
             })
 
+            // Set initial fullscreen status (if any) and
+            // listen for corresponding events.
             const initialFullscreen = sessionStorage.getItem(FULLSCREEN_SESSION_KEY) === '1'
             if (autoPlayEnabled && initialFullscreen && document.fullscreenEnabled) {
                 document.documentElement.requestFullscreen().catch(_e => {
-                    // FullScreen error, user gesture is not present
+                    // FullScreen error, user gesture is not present.
+                    // Leave the player as-is.
                 })
             }
             document.addEventListener('fullscreenchange', _e => {

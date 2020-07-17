@@ -119,11 +119,12 @@ async function collectFromGetPlayerOptions($li) {
             }
 
             // When the container collapses, reload
-            $summary.addEventListener('click', _e => {
+            $summary.addEventListener('click', function onDetailClick(_e) {
                 if ($con.open) {
-                    // Unload the player page to manually trigger view report
-                    $player.contentWindow.postMessage({ type: 'blank' }, MEDIASITE_ORIGIN)
-                    setTimeout(reload, 200)
+                    // Manually trigger a coverage report
+                    $player.contentWindow.postMessage({ type: 'updateCoverage' }, MEDIASITE_ORIGIN)
+                    setTimeout(reload, 400)
+                    $summary.removeEventListener('click', onDetailClick)
                 }
             })
         })

@@ -6,6 +6,15 @@ let autoPlayEnabled = false
 let continuousPlayEnabled = false
 /** @type {boolean | undefined} */
 let hasNextPage = undefined
+/** @type {Date | undefined} */
+let coverPageRemovedAt = undefined
+
+/**
+ * Manually trigger a `beforeunload` event to the player so that
+ * watched segments are reported immediately.
+ */
+const updateCoverage = () => window.dispatchEvent(new Event('beforeunload'))
+
 window.addEventListener('message', e => {
     const { type = '' } = e.data
     switch (type) {
@@ -16,8 +25,8 @@ window.addEventListener('message', e => {
             document.querySelector('button.play-button').click()
             e.stopImmediatePropagation()
             break
-        case 'blank':
-            location.href = 'about:blank'
+        case 'updateCoverage':
+            updateCoverage()
             break
     }
 })
@@ -210,6 +219,7 @@ function listenOnPlaybackEnd($player) {
                     injectWhenContinuousPlayOff()
                 }
             }
+            updateCoverage()
             enterPresentationEnded()
         } else if (ended && !$player.classList.contains('presentation-ended')) {
             ended = false

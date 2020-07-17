@@ -91,7 +91,14 @@ async function getPlayerOptions(landingUrl) {
         .map(s => s.VideoUrls[0].Location)
     const slideStreams = streams
         .filter(s => s.StreamType === 2)
-    const thumbnailStream = streams.find(s => s.ThumbnailUrl)
+    let {
+        ThumbnailUrl: thumbnail = undefined
+    } = streams.find(s => s.ThumbnailUrl) || {}
+    if (typeof thumbnail === 'string' && thumbnail && !thumbnail.startsWith('?')) {
+        thumbnail = 'https://mymedia.xmu.edu.cn' + thumbnail
+    } else {
+        thumbnail = undefined
+    }
 
     return {
         type: 'getPlayerOptions',
@@ -102,8 +109,7 @@ async function getPlayerOptions(landingUrl) {
         coverages,
         duration,
         bookmark,
-        thumbnail: thumbnailStream
-            && 'https://mymedia.xmu.edu.cn' + thumbnailStream.ThumbnailUrl
+        thumbnail
     }
 }
 

@@ -85,6 +85,8 @@ li.mediasite details .center {
 
 li.mediasite details > iframe {
     resize: vertical;
+    /* Align with `contentRect` in ResizeObserver */
+    box-sizing: content-box;
 }
 
 /* Avoid pointer being distracted from elements inside while resizing */

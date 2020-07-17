@@ -1,3 +1,5 @@
+const DEFAULT_PLAYER_HEIGHT_SESSION_KEY = 'defaultPlayerHeightSessionKey'
+
 const $mediaLis = Array
     .from(document.querySelectorAll('li.activity.mediasite.modtype_mediasite'))
 
@@ -24,6 +26,10 @@ function removeYuiIds($el) {
     }
     Array.from($el.children).forEach(removeYuiIds)
 }
+
+const playerResizeObserver = new ResizeObserver(([{ contentRect: { height } }]) => {
+    sessionStorage.setItem(DEFAULT_PLAYER_HEIGHT_SESSION_KEY, height)
+})
 
 /**
  * 
@@ -103,6 +109,11 @@ async function collectFromGetPlayerOptions($li) {
             $player.allowFullscreen = true
             $player.src = `https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${id}&coverplay=1`
             $player.className = 'mediasite-content-iframe'
+            const initialHeight = sessionStorage.getItem(DEFAULT_PLAYER_HEIGHT_SESSION_KEY)
+            if (initialHeight) {
+                $player.style.height = initialHeight.toString() + 'px'
+            }
+            playerResizeObserver.observe($player)
             $con.classList.add('playing')
             $btn.before($player)
             $btn.remove()
@@ -125,6 +136,7 @@ async function collectFromGetPlayerOptions($li) {
                     $player.contentWindow.postMessage({ type: 'updateCoverage' }, MEDIASITE_ORIGIN)
                     setTimeout(reload, 400)
                     $summary.removeEventListener('click', onDetailClick)
+                    playerResizeObserver.unobserve($player)
                 }
             })
         })

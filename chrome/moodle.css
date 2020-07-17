@@ -83,6 +83,15 @@ li.mediasite details .center {
     margin: 0 auto;
 }
 
+li.mediasite details > iframe {
+    resize: vertical;
+}
+
+/* Avoid pointer being distracted from elements inside while resizing */
+li.mediasite details > iframe:active {
+    pointer-events: none;
+}
+
 .mediasite-proxy-dialog {
     visibility: hidden;
     position: fixed;

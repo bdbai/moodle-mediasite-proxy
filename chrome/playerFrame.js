@@ -209,7 +209,9 @@ function listenOnPlaybackEnd($player) {
     const observer = new MutationObserver(_e => {
         if (!ended && $player.classList.contains('presentation-ended')) {
             ended = true
-            if (!btnInjected) {
+            // Inject continuous play buttons when enabled.
+            // For course view: update coverage only.
+            if (!btnInjected && continuousPlayEnabled) {
                 btnInjected = true
                 if (hasNextPage === false) {
                     sessionStorage.removeItem(CONTINUOUS_PLAY_ON_SESSION_KEY)
@@ -354,9 +356,7 @@ function listenOnControls() {
             })
         }
         if (rateBtnListening && videoListening) {
-            if (continuousPlayEnabled) {
-                listenOnPlaybackEnd(document.querySelector('#PlayerContent > div.player'))
-            }
+            listenOnPlaybackEnd(document.querySelector('#PlayerContent > div.player'))
             observer.disconnect()
         }
     })

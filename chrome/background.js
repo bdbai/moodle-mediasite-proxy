@@ -81,7 +81,8 @@ async function getPlayerOptions(landingUrl) {
             Presentation: {
                 Title: title,
                 Streams: streams,
-                Duration: duration
+                Duration: duration,
+                ThumbnailUrl: presentationThumbnailUrl
             },
             PresentationBookmark: bookmark
         }
@@ -91,14 +92,13 @@ async function getPlayerOptions(landingUrl) {
         .map(s => s.VideoUrls[0].Location)
     const slideStreams = streams
         .filter(s => s.StreamType === 2)
-    let {
-        ThumbnailUrl: thumbnail = undefined
-    } = streams.find(s => s.ThumbnailUrl) || {}
-    if (typeof thumbnail === 'string' && thumbnail && !thumbnail.startsWith('?')) {
-        thumbnail = 'https://mymedia.xmu.edu.cn' + thumbnail
-    } else {
-        thumbnail = undefined
-    }
+    const thumbnail = [
+        ...streams.map(s => s.ThumbnailUrl),
+        (presentationThumbnailUrl || '') + '?authticket=' + authTicket
+    ]
+        .filter(u => typeof u === 'string' && u && !u.startsWith('?'))
+        .slice(0, 1)
+        .map(u => 'https://mymedia.xmu.edu.cn' + u)[0]
 
     return {
         type: 'getPlayerOptions',

@@ -8,6 +8,7 @@ li.mediasite summary {
     display: flex;
     align-items: center;
     margin-left: -4em;
+    outline: unset;
     /* Position this element to let thumbnail bottom: 100% work */
     position: relative;
 }
@@ -38,13 +39,15 @@ li.mediasite summary .thumbnail {
     box-shadow: rgb(231, 231, 231) 0 0 10px 4px;
     border-radius: 1em;
     overflow: hidden;
+    transform: translateY(50%);
 
-    transition: opacity 0.3s, visibility;
+    transition: opacity 0.3s, visibility 0.3s;
 }
 
-li.mediasite:hover .thumbnail {
-    opacity: 0.9;
+li.mediasite:hover details .thumbnail,
+li.mediasite details > summary:hover .thumbnail {
     visibility: visible;
+    opacity: 0.9;
 }
 
 li.mediasite details:hover .thumbnail {
@@ -52,18 +55,13 @@ li.mediasite details:hover .thumbnail {
     visibility: hidden;
 }
 
-li.mediasite details > summary:hover .thumbnail {
-    opacity: 0.9;
-    visibility: visible;
-}
-
-li.mediasite summary {
-    outline: unset;
-}
-
 li.mediasite summary .thumbnail > img {
     max-width: 30vw;
-    max-height: 30vh;
+    max-height: 50vh;
+}
+
+li.mediasite details summary .thumbnail:hover {
+    opacity: 0.4;
 }
 
 li.mediasite details {

@@ -327,15 +327,18 @@ function listenOnControls() {
                 $video.addEventListener('ratechange', onRateChange)
             }
 
-            // To prevent playback rate to be changed back after seeked
-            $video.addEventListener('seeked', function prepareChangeBackRate(_e) {
+            // To prevent playback rate to be changed back during seeking
+            $video.addEventListener('seeking', function prepareChangeBackRate(_e) {
+                $video.removeEventListener('ratechange', onRateChange)
                 const originalPlaybackRate = $video.playbackRate
                 $video.addEventListener('playing', function changeBackRate(_e) {
                     $videos.forEach($v => $v.playbackRate = originalPlaybackRate)
                     $video.removeEventListener('playing', changeBackRate)
-                    $video.addEventListener('seeked', prepareChangeBackRate)
+                    $video.addEventListener('seeking', prepareChangeBackRate)
+                    // Avoid unnecessary ratechange event
+                    window.requestAnimationFrame(() => $video.addEventListener('ratechange', onRateChange))
                 })
-                $video.removeEventListener('seeked', prepareChangeBackRate)
+                $video.removeEventListener('seeking', prepareChangeBackRate)
             })
 
             // Set initial fullscreen status (if any) and

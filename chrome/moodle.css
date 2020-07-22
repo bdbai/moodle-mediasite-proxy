@@ -81,14 +81,27 @@ li.mediasite details .center {
     margin: 0 auto;
 }
 
-li.mediasite details > iframe {
+/* https://bugzilla.mozilla.org/show_bug.cgi?id=680823 */
+li.mediasite details > .resizer {
     resize: vertical;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    min-height: 400px;
     /* Align with `contentRect` in ResizeObserver */
     box-sizing: content-box;
 }
 
+li.mediasite details > .resizer > iframe {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
 /* Avoid pointer being distracted from elements inside while resizing */
-li.mediasite details > iframe:active {
+li.mediasite details > .resizer:active {
     pointer-events: none;
 }
 

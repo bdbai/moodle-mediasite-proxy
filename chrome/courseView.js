@@ -109,13 +109,16 @@ async function collectFromGetPlayerOptions($li) {
             $player.allowFullscreen = true
             $player.src = `https://l.xmu.edu.my/mod/mediasite/content_launch.php?id=${id}&coverplay=1`
             $player.className = 'mediasite-content-iframe'
+            $con.classList.add('playing')
+            const $resizer = document.createElement('div')
             const initialHeight = sessionStorage.getItem(DEFAULT_PLAYER_HEIGHT_SESSION_KEY)
             if (initialHeight) {
-                $player.style.height = initialHeight.toString() + 'px'
+                $resizer.style.height = initialHeight.toString() + 'px'
             }
-            playerResizeObserver.observe($player)
-            $con.classList.add('playing')
-            $btn.before($player)
+            $resizer.className = 'resizer'
+            $resizer.appendChild($player)
+            playerResizeObserver.observe($resizer)
+            $btn.before($resizer)
             $btn.remove()
 
             if ((await settingsAsync).autoplay) {
@@ -136,7 +139,7 @@ async function collectFromGetPlayerOptions($li) {
                     $player.contentWindow.postMessage({ type: 'updateCoverage' }, MEDIASITE_ORIGIN)
                     setTimeout(reload, 400)
                     $summary.removeEventListener('click', onDetailClick)
-                    playerResizeObserver.unobserve($player)
+                    playerResizeObserver.unobserve($resizer)
                 }
             })
         })

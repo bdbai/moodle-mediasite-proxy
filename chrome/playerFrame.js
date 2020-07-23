@@ -8,6 +8,7 @@ let continuousPlayEnabled = false
 let hasNextPage = undefined
 /** @type {Date | undefined} */
 let coverPageRemovedAt = undefined
+let rateChangedPermitted = true
 
 /**
  * Manually trigger a `beforeunload` event to the player so that
@@ -259,9 +260,14 @@ function listenOnControls() {
                 const originalRate = Math.round($videos[0].playbackRate * 100) / 100
                 const rate = parseFloat(prompt('Custom playback speed rate', originalRate.toString()))
                 if (!Number.isNaN(rate) && rate > 0.09 && rate < 15.1) {
+                    rateChangedPermitted = true
                     $videos.forEach($v => $v.playbackRate = rate)
                 }
             })
+            $rateBtn.addEventListener('click', _e => {
+                rateChangedPermitted = true
+            })
+            rateChangedPermitted = false
         }
         const $videos = Array.from(document.getElementsByTagName('video'))
         /** @type {HTMLVideoElement | undefined} */
@@ -295,51 +301,46 @@ function listenOnControls() {
                 $playBtn && $playBtn.click()
             })
 
+            let initialPlaybackRate = parseFloat(sessionStorage.getItem(PLAYBACK_RATE_SESSION_KEY))
+            // Bounce detect
+            let lastPlaybackRateSetBack = 0
+            let playbackRateSetBackCount = 0
             // Set initial playback rate (if any) and
             // listen for corresponding events.
             /**
-             * @param {Event} _e 
+             * @param {unknown} e
              */
-            const onRateChange = _e => {
-                sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, $video.playbackRate.toString())
-            }
-            const initialPlaybackRate = parseFloat(sessionStorage.getItem(PLAYBACK_RATE_SESSION_KEY))
-            if (!Number.isNaN(initialPlaybackRate)) {
-                $video.addEventListener('playing', function videoPlaying(_e) {
-                    // To prevent playback rate to be changed back in 1000 ms
-                    /**
-                     * @param {Event} e
-                     */
-                    function onUnintendedPlaybackRateChange(_e) {
-                        if (Math.abs($video.playbackRate - initialPlaybackRate) > 0.001) {
-                            $videos.forEach($v => $v.playbackRate = initialPlaybackRate)
-                        }
+            const onRateChange = ({ target: { playbackRate: newRate } }) => {
+                if (Math.abs(newRate - initialPlaybackRate) <= 1e-3) {
+                    rateChangedPermitted = false
+                    return
+                }
+                if (rateChangedPermitted) {
+                    initialPlaybackRate = newRate
+                    sessionStorage.setItem(PLAYBACK_RATE_SESSION_KEY, newRate.toString())
+                    rateChangedPermitted = false
+                } else {
+                    const now = +new Date()
+                    if (playbackRateSetBackCount++ >= 10 && now - lastPlaybackRateSetBack < 1e3) {
+                        // Yield
+                        playbackRateSetBackCount = 0
+                        lastPlaybackRateSetBack = 0
+                        initialPlaybackRate = newRate
+                        return
                     }
-                    $video.addEventListener('ratechange', onUnintendedPlaybackRateChange)
+                    if (now - lastPlaybackRateSetBack >= 1e3) {
+                        lastPlaybackRateSetBack = now
+                    }
                     $videos.forEach($v => $v.playbackRate = initialPlaybackRate)
-                    setTimeout(() => {
-                        $video.removeEventListener('ratechange', onUnintendedPlaybackRateChange)
-                        $video.addEventListener('ratechange', onRateChange)
-                    }, 1000)
-                    $video.removeEventListener('playing', videoPlaying)
-                })
-            } else {
-                $video.addEventListener('ratechange', onRateChange)
+                }
             }
-
-            // To prevent playback rate to be changed back during seeking
-            $video.addEventListener('seeking', function prepareChangeBackRate(_e) {
-                $video.removeEventListener('ratechange', onRateChange)
-                const originalPlaybackRate = $video.playbackRate
-                $video.addEventListener('playing', function changeBackRate(_e) {
-                    $videos.forEach($v => $v.playbackRate = originalPlaybackRate)
-                    $video.removeEventListener('playing', changeBackRate)
-                    $video.addEventListener('seeking', prepareChangeBackRate)
-                    // Avoid unnecessary ratechange event
-                    window.requestAnimationFrame(() => $video.addEventListener('ratechange', onRateChange))
-                })
-                $video.removeEventListener('seeking', prepareChangeBackRate)
-            })
+            if (Number.isNaN(initialPlaybackRate)) {
+                initialPlaybackRate = 1.0
+            } else {
+                // Manually trigger a change
+                onRateChange({ target: { playbackRate: 1.0 } })
+            }
+            $video.addEventListener('ratechange', onRateChange)
 
             // Set initial fullscreen status (if any) and
             // listen for corresponding events.

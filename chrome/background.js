@@ -55,7 +55,9 @@ async function getPlayerOptions(landingUrl) {
     })
         .then(res => res.text())
     const launcherUrl = getActionFromHtml(coverPlayRes)
-    const authTicket = getUrlSearchParamsFromHtml(coverPlayRes).get('AuthTicket')
+    const authTicket = coverPlayRes.match(/authTicket=(\w+)/)[1]
+        // For compatibility,
+        || getUrlSearchParamsFromHtml(coverPlayRes).get('AuthTicket')
     const mediasiteId = moodleLandingParams.get('mediasiteid')
     // Finally,
     const getPlayerOptionsRes = await withRetry(() => fetch("https://mymedia.xmu.edu.cn/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions", {

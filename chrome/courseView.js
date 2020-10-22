@@ -18,6 +18,21 @@ const getPlayerOptionsAsync = moodleId => new Promise((resolve, _reject) => chro
 }, resolve))
 
 /**
+ * @param {string} url
+ * @returns {Promise<ArrayBuffer>}
+ */
+const getDataUrlAsync = url => new Promise((resolve, reject) => chrome.runtime.sendMessage({
+    type: 'getDataUrl',
+    url
+}, res => {
+    if (res instanceof Error) {
+        reject(res)
+    } else {
+        resolve(res)
+    }
+}))
+
+/**
  * @param {Element} $el 
  */
 function removeYuiIds($el) {
@@ -83,16 +98,16 @@ async function collectFromGetPlayerOptions($li) {
             $thumb.loading = 'lazy'
         }
         $thumbCon.className = 'thumbnail'
-        // Load image through fetch with cookie `ASP.NET_SessionId` omitted.
-        // Otherwise, we will get a 401.
-        fetch(thumbnail, { credentials: 'omit' })
-            .then(res => res.blob())
-            .then(res => URL.createObjectURL(res))
-            .then(url => {
-                $thumb.src = url
+        // Load image through background page (for CORS) with cookie
+        // `ASP.NET_SessionId` omitted. Otherwise, we will get a 401.
+        getDataUrlAsync(thumbnail)
+            // A trick to load data URLs generated from background pages
+            .then(fetch)
+            .then(res => (URL.revokeObjectURL(res.url), res.blob()))
+            .then(blob => {
+                $thumb.src = URL.createObjectURL(blob)
                 $summary.appendChild($thumbCon)
-            })
-            .catch(err => console.error(err))
+            }, console.error)
     }
     $con.appendChild($summary)
 
@@ -210,9 +225,7 @@ async function collectFromGetPlayerOptions($li) {
     for (const [start, end] of unwatchedPeriods) {
         const $unwatched = document.createElement('li')
         const period = end - start
-        $unwatched.innerText = `${
-            formatTime(start)} - ${formatTime(end)} (${period} second${
-            period === 1 ? '' : 's'})`
+        $unwatched.innerText = `${formatTime(start)} - ${formatTime(end)} (${period} second${period === 1 ? '' : 's'})`
         $unwatchedList.appendChild($unwatched)
     }
     if (unwatchedPeriods.length > 0) {
@@ -224,24 +237,20 @@ async function collectFromGetPlayerOptions($li) {
     if (bookmark && bookmark.position) {
         const { position } = bookmark
         const progress = position / duration * 1000
-        appendix += `[bookmark at ${
-            Math.floor(position / 60)}:${
-            Math.floor(position % 60)}(${
-            progress.toLocaleString('en-US', {
-                style: 'percent',
-                maximumFractionDigits: 2
-            })})] `
+        appendix += `[bookmark at ${Math.floor(position / 60)}:${Math.floor(position % 60)}(${progress.toLocaleString('en-US', {
+            style: 'percent',
+            maximumFractionDigits: 2
+        })})] `
     }
     const $instanceNameNode = $con.querySelector('span.instancename')
     const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
     // Unwatched periods
-    appendix += `[Est. completeness = ${
-        Math.min(1, coveredSeconds / totalSeconds)
-            .toLocaleString('en-US', {
-                style: 'percent',
-                maximumFractionDigits: 2
-            })
+    appendix += `[Est. completeness = ${Math.min(1, coveredSeconds / totalSeconds)
+        .toLocaleString('en-US', {
+            style: 'percent',
+            maximumFractionDigits: 2
+        })
         }]`
     $instanceNameNode.setAttribute('data-original-text', $instanceNameTextNode.textContent)
     $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`

@@ -139,6 +139,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                         removeCookieAsync({ name, url: `https://${domain}${path}`, storeId })))
                     .then(sendResponse))
             return true
+        case 'getDataUrl':
+            fetch(msg.url, { credentials: 'omit' })
+                .then(res => res.blob())
+                .then(URL.createObjectURL)
+                .then(sendResponse, sendResponse)
+            return true
     }
 })
 

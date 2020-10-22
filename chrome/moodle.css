@@ -24,6 +24,7 @@ li.mediasite summary:focus > div.item-header {
 /* Make .mod-indent-outer 'positioned' for completion box to anchor */
 li.mediasite summary div.mod-indent-outer {
     position: relative;
+    width: 100%;
 }
 
 li.mediasite summary .thumbnail {

@@ -269,7 +269,9 @@ function listenOnControls() {
             })
             rateChangedPermitted = false
         }
-        const $videos = Array.from(document.getElementsByTagName('video'))
+        const $videos = Array
+            .from(document.getElementsByTagName('video'))
+            .filter($v => !$v.classList.contains('ad-player'))
         /** @type {HTMLVideoElement | undefined} */
         const $video = $videos[0]
 

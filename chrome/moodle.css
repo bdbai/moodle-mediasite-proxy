@@ -27,6 +27,12 @@ li.mediasite summary div.mod-indent-outer {
     width: 100%;
 }
 
+/* Bring the check box to front */
+li.mediasite summary div.mod-indent-outer form.togglecompletion {
+    position: relative;
+    z-index: 150;
+}
+
 li.mediasite summary .thumbnail {
     position: absolute;
     bottom: 100%;

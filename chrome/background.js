@@ -145,6 +145,16 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
                 .then(URL.createObjectURL)
                 .then(sendResponse, sendResponse)
             return true
+        case 'getUrlAvailability':
+            const controller = new AbortController()
+            setTimeout(() => controller.abort(), 5000)
+            fetch(msg.url, { credentials: 'omit' })
+                .then(({ status, redirected }) => sendResponse(!redirected && status >= 200 && status < 300),
+                    ex => {
+                        console.debug(ex)
+                        sendResponse(false)
+                    })
+            return true
     }
 })
 

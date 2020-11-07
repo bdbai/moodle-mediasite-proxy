@@ -73,13 +73,13 @@
     "storage",
     "cookies",
     "https://mymedia.xmu.edu.cn/*",
+    "https://myv.xmu.edu.cn/*",
     "https://l.xmu.edu.my/*"
   ],
   "optional_permissions": [
     "webRequest",
     "webRequestBlocking",
-    "http://127.0.0.1/*",
-    "https://myv.xmu.edu.cn/*"
+    "http://127.0.0.1/*"
   ],
   "manifest_version": 2
 }

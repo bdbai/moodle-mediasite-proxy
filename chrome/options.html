@@ -10,10 +10,71 @@
         html {
             width: 15em;
         }
+
+        small {
+            color: #999;
+        }
+
+        ul.availability-list {
+            list-style-type: none;
+            padding-inline-start: 0;
+        }
+
+        ul.availability-list li {
+            margin-top: 0.6em;
+            cursor: pointer;
+        }
+
+        ul.availability-list .indicator {
+            float: right;
+            display: none;
+        }
+
+        ul.availability-list li.pending .indicator.pending {
+            display: inline;
+        }
+
+        ul.availability-list li.success .indicator.success {
+            display: inline;
+        }
+
+        ul.availability-list li.error .indicator.error {
+            display: inline;
+        }
     </style>
 </head>
 
 <body>
+    <h4>Service Availability</h4>
+    <hr>
+    <ul class="availability-list">
+        <li class="pending" data-test-url="https://l.xmu.edu.my/version.php">
+            Moodle
+            <span class="indicator pending" title="Checking availability">⏳</span>
+            <span class="indicator success" title="Available">✅</span>
+            <span class="indicator error" title="Not available">⛔</span>
+            <br>
+            <small>The Learning Management System</small>
+        </li>
+        <li class="pending" data-test-url="https://mymedia.xmu.edu.cn/Mediasite/Login">
+            Mediasite
+            <span class="indicator pending" title="Checking availability">⏳</span>
+            <span class="indicator success" title="Available">✅</span>
+            <span class="indicator error" title="Not available">⛔</span>
+            <br>
+            <small>Player, Slide provider</small>
+        </li>
+        <li class="pending" data-test-url="https://myv.xmu.edu.cn/">
+            Mediasite Video
+            <span class="indicator pending" title="Checking availability">⏳</span>
+            <span class="indicator success" title="Available">✅</span>
+            <span class="indicator error" title="Not available">⛔</span>
+            <br>
+            <small>Audio & Video streaming</small>
+        </li>
+    </ul>
+    <div>
+    </div>
     <h4>Advanced Settings</h4>
     <hr>
     <div>

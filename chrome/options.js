@@ -20,6 +20,32 @@ const settingKeyToId = {
     showThumbnail: 'show-thumbnail-box'
 }
 
+/**
+ * @param {string} url 
+ * @returns {Promise<boolean>}
+ */
+const checkAvailability = url => new Promise((resolve, _) => chrome.runtime.sendMessage({
+    type: 'getUrlAvailability',
+    url
+}, resolve))
+
+/**
+ * @param {HTMLElement} $el 
+ */
+async function updateAvailabilityEl($el) {
+    const url = $el.getAttribute('data-test-url')
+    $el.classList.remove('error')
+    $el.classList.remove('success')
+    $el.classList.add('pending')
+    if (await checkAvailability(url)) {
+        $el.classList.remove('pending')
+        $el.classList.add('success')
+    } else {
+        $el.classList.remove('pending')
+        $el.classList.add('error')
+    }
+}
+
 async function main() {
     const settings = await getSettings()
     Object
@@ -34,7 +60,7 @@ async function main() {
                     if ($el.checked) {
                         chrome.permissions.request({
                             permissions: ['webRequest', 'webRequestBlocking'],
-                            origins: ['http://127.0.0.1/*', 'https://myv.xmu.edu.cn/*']
+                            origins: ['http://127.0.0.1/*']
                         }, granted => {
                             if (granted) {
                                 saveSettingValue(k, granted)
@@ -52,6 +78,15 @@ async function main() {
                 })
             }
         })
+
+    const $availabilityEls = document.querySelectorAll('ul.availability-list li[data-test-url]')
+    for (const $el of $availabilityEls) {
+        $el.addEventListener('click', async e => {
+            e.preventDefault()
+            updateAvailabilityEl($el);
+        })
+    }
+    $availabilityEls.forEach(updateAvailabilityEl)
 }
 
 main()

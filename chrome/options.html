@@ -41,6 +41,11 @@
         ul.availability-list li.error .indicator.error {
             display: inline;
         }
+
+        .setting-list label.error {
+            transition: color 1s linear;
+            color: red;
+        }
     </style>
 </head>
 
@@ -56,7 +61,8 @@
             <br>
             <small>The Learning Management System</small>
         </li>
-        <li class="pending" data-test-url="https://mymedia.xmu.edu.cn/Mediasite/Login">
+        <li class="pending" data-test-url="https://mymedia.xmu.edu.cn/Mediasite/Login"
+            data-forwarding-setting="manifestFw">
             Mediasite
             <span class="indicator pending" title="Checking availability">⏳</span>
             <span class="indicator success" title="Available">✅</span>
@@ -64,7 +70,7 @@
             <br>
             <small>Player, Slide provider</small>
         </li>
-        <li class="pending" data-test-url="https://myv.xmu.edu.cn/">
+        <li class="pending" data-test-url="https://myv.xmu.edu.cn/" data-forwarding-setting="mediaFw">
             Mediasite Video
             <span class="indicator pending" title="Checking availability">⏳</span>
             <span class="indicator success" title="Available">✅</span>
@@ -77,41 +83,43 @@
     </div>
     <h4>Advanced Settings</h4>
     <hr>
-    <div>
-        <input id="extract-info-box" type="checkbox">
-        <label for="extract-info-box">
-            Extract media info from Mediasite player
-        </label>
-    </div>
-    <div>
-        <input id="autoplay-box" type="checkbox">
-        <label for="autoplay-box">
-            Auto play video on single pages
-        </label>
-    </div>
-    <div>
-        <input id="show-thumbnail-box" type="checkbox">
-        <label for="show-thumbnail-box">
-            Show thumbnails on course page
-        </label>
-    </div>
-    <div>
-        <input id="dict-fw-box" type="checkbox">
-        <label for="dict-fw-box">
-            Enable i18n resource forwarding
-        </label>
-    </div>
-    <div>
-        <input id="manifest-fw-box" type="checkbox">
-        <label for="manifest-fw-box">
-            Enable manifest forwarding
-        </label>
-    </div>
-    <div>
-        <input id="media-fw-box" type="checkbox">
-        <label for="media-fw-box">
-            Enable media forwarding
-        </label>
+    <div class="setting-list">
+        <div>
+            <input id="extract-info-box" type="checkbox">
+            <label for="extract-info-box">
+                Extract media info from Mediasite player
+            </label>
+        </div>
+        <div>
+            <input id="autoplay-box" type="checkbox">
+            <label for="autoplay-box">
+                Auto play video on single pages
+            </label>
+        </div>
+        <div>
+            <input id="show-thumbnail-box" type="checkbox">
+            <label for="show-thumbnail-box">
+                Show thumbnails on course page
+            </label>
+        </div>
+        <div>
+            <input id="dict-fw-box" type="checkbox">
+            <label for="dict-fw-box">
+                Enable i18n resource forwarding
+            </label>
+        </div>
+        <div>
+            <input id="manifest-fw-box" type="checkbox">
+            <label for="manifest-fw-box">
+                Enable manifest forwarding
+            </label>
+        </div>
+        <div>
+            <input id="media-fw-box" type="checkbox">
+            <label for="media-fw-box">
+                Enable media forwarding
+            </label>
+        </div>
     </div>
 
     <script type="module" src="options.js"></script>

@@ -33,16 +33,34 @@ const checkAvailability = url => new Promise((resolve, _) => chrome.runtime.send
  * @param {HTMLElement} $el 
  */
 async function updateAvailabilityEl($el) {
-    const url = $el.getAttribute('data-test-url')
+    const rawUrl = $el.getAttribute('data-test-url')
+    const forwardingSetting = $el.getAttribute('data-forwarding-setting')
     $el.classList.remove('error')
     $el.classList.remove('success')
     $el.classList.add('pending')
-    if (await checkAvailability(url)) {
-        $el.classList.remove('pending')
-        $el.classList.add('success')
-    } else {
-        $el.classList.remove('pending')
-        $el.classList.add('error')
+    /** @type {HTMLLabelElement | undefined} */
+    let $settingLabel = undefined
+    if (Object.prototype.hasOwnProperty.call(settingKeyToId, forwardingSetting)) {
+        const settingElId = settingKeyToId[forwardingSetting];
+        /** @type {HTMLInputElement} */
+        const $setting = document.getElementById(settingElId);
+        const $label = document.querySelector(`label[for=${settingKeyToId[forwardingSetting]}`)
+        $label.classList.remove('error')
+        if ($setting.checked) {
+            $settingLabel = $label
+        }
+    }
+    const url = $settingLabel
+        ? (`http://localhost:10384/?url=${encodeURI(rawUrl)}&r=${Math.random()}`)
+        : `${rawUrl}?r=${Math.random}`
+    const availability = await checkAvailability(url)
+    const stateClass = availability ? 'success' : 'error'
+    const negStateClass = availability ? 'error' : 'success'
+    $el.classList.remove('pending')
+    $el.classList.remove(negStateClass)
+    $el.classList.add(stateClass)
+    if ($settingLabel && !availability) {
+        $settingLabel.classList.add('error')
     }
 }
 

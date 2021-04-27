@@ -52,7 +52,7 @@ async function updateAvailabilityEl($el) {
     }
     const url = $settingLabel
         ? (`http://localhost:10384/?url=${encodeURI(rawUrl)}&r=${Math.random()}`)
-        : `${rawUrl}?r=${Math.random}`
+        : `${rawUrl}?r=${Math.random()}`
     const availability = await checkAvailability(url)
     const stateClass = availability ? 'success' : 'error'
     const negStateClass = availability ? 'error' : 'success'

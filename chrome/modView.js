@@ -169,8 +169,8 @@ window.addEventListener('message', async e => {
 
     if (typeof $iframe?.allow === 'string') {
         $iframe.allow += `; autoplay ${MEDIASITE_ORIGIN}; fullscreen ${MEDIASITE_ORIGIN}`
-    } else {
-        $iframe?.allowFullscreen = true
+    } else if ($iframe) {
+        $iframe.allowFullscreen = true
     }
     const $con = document.getElementById('maincontent').parentElement
 

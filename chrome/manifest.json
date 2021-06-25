@@ -24,6 +24,9 @@
       "js": [
         "playerFrame.js"
       ],
+      "css": [
+        "playerFrame.css"
+      ],
       "all_frames": true
     },
     {

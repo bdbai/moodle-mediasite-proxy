@@ -1,17 +1,16 @@
 import {
     getSettings,
-    saveSettingValue,
-    defaultSettings
+    saveSettingValue
 } from './settings.js'
 
 /**
- * @typedef {keyof(defaultSettings)} SettingKeys
+ * @typedef {keyof(import('./settings').Setting)} SettingKeys
  */
 
 /**
  * @type {Record<SettingKeys, string>}
  */
-const settingKeyToId = {
+const binarySettingKeyToId = {
     dictFw: 'dict-fw-box',
     manifestFw: 'manifest-fw-box',
     mediaFw: 'media-fw-box',
@@ -40,11 +39,11 @@ async function updateAvailabilityEl($el) {
     $el.classList.add('pending')
     /** @type {HTMLLabelElement | undefined} */
     let $settingLabel = undefined
-    if (Object.prototype.hasOwnProperty.call(settingKeyToId, forwardingSetting)) {
-        const settingElId = settingKeyToId[forwardingSetting];
+    if (Object.prototype.hasOwnProperty.call(binarySettingKeyToId, forwardingSetting)) {
+        const settingElId = binarySettingKeyToId[forwardingSetting];
         /** @type {HTMLInputElement} */
         const $setting = document.getElementById(settingElId);
-        const $label = document.querySelector(`label[for=${settingKeyToId[forwardingSetting]}`)
+        const $label = document.querySelector(`label[for=${binarySettingKeyToId[forwardingSetting]}`)
         $label.classList.remove('error')
         if ($setting.checked) {
             $settingLabel = $label
@@ -67,7 +66,7 @@ async function updateAvailabilityEl($el) {
 async function main() {
     const settings = await getSettings()
     Object
-        .entries(settingKeyToId)
+        .entries(binarySettingKeyToId)
         .forEach(([k, v]) => {
             /** @type {HTMLInputElement} */
             const $el = document.getElementById(v)
@@ -96,6 +95,13 @@ async function main() {
                 })
             }
         })
+
+    /** @type {HTMLSelectElement} */
+    const $mediaSourceBox = document.getElementById('media-source-box')
+    $mediaSourceBox.value = settings.videoSource
+    $mediaSourceBox.addEventListener('change', _e => {
+        saveSettingValue('videoSource', $mediaSourceBox.value)
+    })
 
     const $availabilityEls = document.querySelectorAll('ul.availability-list li[data-test-url]')
     for (const $el of $availabilityEls) {

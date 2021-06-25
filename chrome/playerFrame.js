@@ -2,6 +2,7 @@ const MOODLE_ORIGIN = 'https://l.xmu.edu.my'
 const CONTINUOUS_PLAY_ON_SESSION_KEY = 'continuousPlayOn'
 const PLAYBACK_RATE_SESSION_KEY = 'playbackRate'
 const FULLSCREEN_SESSION_KEY = 'fullscreen'
+/** @typedef {'default' | 'm3u8' | 'mp4' | 'ss' | 'dash'} VideoSource */
 let autoPlayEnabled = false
 let continuousPlayEnabled = false
 /** @type {boolean | undefined} */
@@ -9,6 +10,9 @@ let hasNextPage = undefined
 /** @type {Date | undefined} */
 let coverPageRemovedAt = undefined
 let rateChangedPermitted = true
+/** @type {VideoSource} */
+let currentVideoSource = 'default'
+
 
 /**
  * Manually trigger a `beforeunload` event to the player so that
@@ -375,8 +379,79 @@ function listenOnControls() {
     }
 }
 
+/**
+ * @param {Function | string} cb Function head/tail must be on dedicated lines!
+ */
+function runScriptOnPage(cb) {
+    const $el = document.createElement('script')
+    if (typeof cb === 'string') {
+        $el.innerHTML = cb
+    } else {
+        $el.innerHTML = cb.toString().split('\n').slice(1, -1).join('\n')
+    }
+    document.body.appendChild($el)
+}
+
+async function registerVideoSourceHook() {
+    /**
+     * @type {{ videoSource: VideoSource }}
+     */
+    const videoSource = await new Promise((resolve, _reject) => chrome.storage.sync.get({ videoSource: 'default' },
+        ({ videoSource }) => resolve(videoSource)
+    ))
+    if (videoSource === 'default') {
+        return
+    }
+
+    runScriptOnPage(`window.currentVideoSource = '${videoSource}'`)
+    runScriptOnPage(() => {
+        /** @type {Record<VideoSource, (o: object) => boolean>} */
+        const videoSourceToFilter = {
+            'default': _o => true,
+            'm3u8': o => o?.MimeType === 'audio/x-mpegurl',
+            'mp4': o => o?.MimeType === 'video/mp4',
+            'ss': o => o?.MimeType === 'video/x-mp4-fragmented',
+            'dash': o => o?.MimeType === 'video/x-mpeg-dash'
+        }
+
+        Mediasite.namespace("Mediasite.Player.DataProvider")
+        let serverObj = () => { }
+        Object.defineProperty(window.Mediasite.Player.DataProvider, 'Server', {
+            get: () => serverObj,
+            set: s => serverObj = new Proxy(s, {
+                construct(target, args, _newtarget) {
+                    const res = new target(...args)
+                    const originalLoader = res.LoadPlayerData.bind(res)
+                    res.LoadPlayerData = cb => originalLoader(playerOpts => {
+                        const filter = videoSourceToFilter[window.currentVideoSource]
+                        playerOpts.CurrentPresentation.Streams.forEach(s => {
+                            s.VideoUrls = s.VideoUrls.filter(filter)
+                        })
+                        cb(playerOpts)
+                    })
+                    return res
+                }
+            }),
+        })
+    })
+
+    const $alertEl = document.createElement('p')
+    $alertEl.innerText = 'Custom video source: ' + {
+        'default': 'Default',
+        'm3u8': 'M3U8',
+        'mp4': 'Full MP4',
+        'ss': 'Smooth Streaming',
+        'dash': 'Dash'
+    }[videoSource]
+    const $alertCon = document.createElement('div')
+    $alertCon.appendChild($alertEl)
+    $alertCon.className = 'alert-con'
+    document.body.appendChild($alertCon)
+}
+
 // Skip intermediate pages
 if (document.getElementsByTagName('main').length > 0) {
+    registerVideoSourceHook()
     attachFullscreen()
     listenOnDialog()
     listenOnControls()

@@ -1,0 +1,27 @@
+@keyframes fadeout {
+    to {
+        opacity: 0;
+    }
+}
+
+.alert-con {
+    position: fixed;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    z-index: 100;
+    top: 3rem;
+    animation: fadeout 1.5s 2s forwards;
+}
+
+.alert-con p {
+    color: #fff;
+    background-color: grey;
+    border-radius: .4rem;
+    height: 3rem;
+    line-height: 3rem;
+    opacity: 0.9;
+    padding: 0 1rem;
+    font-size: small;
+    font-weight: lighter;
+}

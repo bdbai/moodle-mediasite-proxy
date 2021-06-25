@@ -4,7 +4,8 @@
  *   manifestFw: boolean,
  *   mediaFw: boolean,
  *   extractInfo: boolean,
- *   showThumbnail: boolean
+ *   showThumbnail: boolean,
+ *   videoSource: 'default' | 'm3u8' | 'mp4' | 'ss' | 'dash'
  * }} Setting
  */
 
@@ -19,6 +20,7 @@ export const defaultSettings = {
     extractInfo: true,
     autoplay: true,
     showThumbnail: true,
+    videoSource: 'default'
 }
 
 /**

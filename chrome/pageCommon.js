@@ -1,5 +1,10 @@
 const MEDIASITE_ORIGIN = 'https://mymedia.xmu.edu.cn'
 
+/**
+ * @param {number} ms 
+ */
+const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
+
 function formatTime(seconds) {
     let hour = ''
     if (seconds >= 3600) {

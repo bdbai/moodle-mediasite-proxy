@@ -12,7 +12,13 @@ let coverPageRemovedAt = undefined
 let rateChangedPermitted = true
 /** @type {VideoSource} */
 let currentVideoSource = 'default'
+/** @type {number | undefined} */
+let desiredPosition = undefined
 
+/**
+ * @param {number} position
+ */
+let seekTo = position => desiredPosition = position
 
 /**
  * Manually trigger a `beforeunload` event to the player so that
@@ -27,11 +33,14 @@ window.addEventListener('message', e => {
             autoPlayEnabled = true
             continuousPlayEnabled = e.data.continuousPlayEnabled
             hasNextPage = e.data.hasNextPage
-            document.querySelector('button.play-button').click()
+            document.querySelector('button.play-button')?.click()
             e.stopImmediatePropagation()
             break
         case 'updateCoverage':
             updateCoverage()
+            break
+        case 'seek':
+            seekTo(e.data.position)
             break
     }
 })
@@ -294,6 +303,10 @@ function listenOnControls() {
                     resolve()
                 })
             }))).then(() => {
+                seekTo = position => $videos.forEach($v => $v.currentTime = position)
+                if (typeof desiredPosition === 'number') {
+                    setTimeout(seekTo, 1000, desiredPosition)
+                }
                 const $playerCon = document.querySelector('div.player')
                 if (
                     !autoPlayEnabled

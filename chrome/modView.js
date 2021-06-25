@@ -1,5 +1,7 @@
 /** @type {HTMLAnchorElement | undefined} */
 let $nextPageLink = undefined
+/** @type {HTMLIFrameElement} */
+const $iframe = document.getElementById('contentframe')
 
 /**
  * @param {string} moodleId 
@@ -89,13 +91,31 @@ async function collectFromGetPlayerOptions() {
         $unwatchedTitle.innerText = 'Unwatched portions'
         $con.appendChild($unwatchedTitle)
     }
+    /**
+     * @param {MouseEvent} e
+     */
+    function unwatchedClickHandler(e) {
+        /** @type {HTMLLIElement} */
+        const $el = e.target
+        const position = Number.parseInt($el.getAttribute('data-position'))
+        const $playerWindow = $iframe?.contentWindow
+        $playerWindow?.postMessage({ type: 'seek', position }, MEDIASITE_ORIGIN)
+        // In case autoplay is disabled
+        $playerWindow?.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+    }
     for (const [start, end] of unwatchedPeriods) {
-        const $unwatched = document.createElement('li')
+        const $unwatchedLi = document.createElement('li')
+        const $unwatched = document.createElement('a')
+        const $dummy = document.createElement('a')
+        $dummy.id = `video-seek-${start}`
+        $iframe?.before($dummy)
         const period = end - start
-        $unwatched.innerText = `${
-            formatTime(start)} - ${formatTime(end)} (${period} second${
-            period === 1 ? '' : 's'})`
-        $unwatchedList.appendChild($unwatched)
+        $unwatched.innerText = `${formatTime(start)} - ${formatTime(end)} (${period} second${period === 1 ? '' : 's'})`
+        $unwatched.href = '#' + $dummy.id
+        $unwatched.setAttribute('data-position', Math.max(start - 2, 0))
+        $unwatched.addEventListener('click', unwatchedClickHandler)
+        $unwatchedLi.appendChild($unwatched)
+        $unwatchedList.appendChild($unwatchedLi)
     }
     if (unwatchedPeriods.length > 0) {
         $con.appendChild($unwatchedList)
@@ -135,8 +155,8 @@ window.addEventListener('message', async e => {
         } else if (data.type === 'requestFullscreen') {
             if (data.state === true) {
                 $iframe.requestFullscreen()
-            } else if (document.fullscreen) {
-                document.exitFullscreen()
+            } else {
+                document.exitFullscreen().catch(_e => { })
             }
         } else if (data.type === 'jumpNext' && $nextPageLink) {
             $nextPageLink.click()
@@ -144,20 +164,11 @@ window.addEventListener('message', async e => {
     }
 })
 
-/**
- * @param {number} ms 
- */
-const delay = ms => new Promise((resolve, _reject) => setTimeout(resolve, ms))
-
 !function () {
     collectFromGetPlayerOptions()
 
-    /** @type {HTMLIFrameElement} */
-    const $iframe = document.getElementById('contentframe')
-    if ($iframe) {
-        if (typeof $iframe.allow === 'string') {
-            $iframe.allow += `; autoplay ${MEDIASITE_ORIGIN}; fullscreen ${MEDIASITE_ORIGIN}`
-        }
+    if (typeof $iframe?.allow === 'string') {
+        $iframe.allow += `; autoplay ${MEDIASITE_ORIGIN}; fullscreen ${MEDIASITE_ORIGIN}`
         $iframe.allowFullscreen = true
     }
     const $con = document.getElementById('maincontent').parentElement

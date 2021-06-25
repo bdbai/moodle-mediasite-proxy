@@ -112,13 +112,17 @@ async function collectFromGetPlayerOptions($li) {
     $con.appendChild($summary)
 
     // Append embedded player
+    /** @type {Window | undefined} */
+    let $playerWindow = undefined
+    /** @type {number | undefined} */
+    let desiredInitialPosition = undefined
+    const $loadPlayerBtn = document.createElement('button')
     {
         const $embedText = document.createElement('h5')
         $embedText.innerText = 'Embedded Player'
-        const $btn = document.createElement('button')
-        $btn.innerText = 'Load Embedded Player'
-        $btn.className = 'center btn btn-primary'
-        $btn.addEventListener('click', async e => {
+        $loadPlayerBtn.innerText = 'Load Embedded Player'
+        $loadPlayerBtn.className = 'center btn btn-primary'
+        $loadPlayerBtn.addEventListener('click', async e => {
             e.preventDefault()
             const $player = document.createElement('iframe')
             $player.allowFullscreen = true
@@ -133,19 +137,24 @@ async function collectFromGetPlayerOptions($li) {
             $resizer.className = 'resizer'
             $resizer.appendChild($player)
             playerResizeObserver.observe($resizer)
-            $btn.before($resizer)
-            $btn.remove()
+            $loadPlayerBtn.before($resizer)
+            $loadPlayerBtn.remove()
+            $playerWindow = $player.contentWindow
 
-            if ((await settingsAsync).autoplay) {
-                coverplayReadyCallbacks.push(() => {
-                    setTimeout(() => {
-                        const $playerWindow = $player.contentWindow
-                        if ($playerWindow) {
-                            $playerWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
-                        }
-                    }, 500)
-                })
-            }
+            coverplayReadyCallbacks.push(async () => {
+                await delay(500)
+                if ((await settingsAsync).autoplay) {
+                    $playerWindow?.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                }
+                if (typeof desiredInitialPosition === 'number') {
+                    $playerWindow?.postMessage({
+                        type: 'seek',
+                        position: desiredInitialPosition
+                    }, MEDIASITE_ORIGIN)
+                    // In case autoplay is disabled
+                    $playerWindow?.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+                }
+            })
 
             // When the container collapses, reload
             $summary.addEventListener('click', function onDetailClick(_e) {
@@ -161,7 +170,7 @@ async function collectFromGetPlayerOptions($li) {
 
         $con.appendChild($embedText)
         $con.appendChild(document.createElement('hr'))
-        $con.appendChild($btn)
+        $con.appendChild($loadPlayerBtn)
     }
 
     // Append media info
@@ -223,11 +232,35 @@ async function collectFromGetPlayerOptions($li) {
         $con.appendChild($unwatchedTitle)
         $con.appendChild(document.createElement('hr'))
     }
+    /**
+     * @param {MouseEvent} e
+     */
+    function unwatchedClickHandler(e) {
+        /** @type {HTMLLIElement} */
+        const $el = e.target
+        const position = Number.parseInt($el.getAttribute('data-position'))
+        if (!$playerWindow) {
+            $loadPlayerBtn.click()
+            desiredInitialPosition = position
+            return
+        }
+        $playerWindow.postMessage({ type: 'seek', position }, MEDIASITE_ORIGIN)
+        // In case autoplay is disabled
+        $playerWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
+    }
     for (const [start, end] of unwatchedPeriods) {
-        const $unwatched = document.createElement('li')
+        const $unwatchedLi = document.createElement('li')
+        const $unwatched = document.createElement('a')
+        const $dummy = document.createElement('a')
+        $dummy.id = `${mediasiteId}-seek-${start}`
+        $loadPlayerBtn.before($dummy)
         const period = end - start
         $unwatched.innerText = `${formatTime(start)} - ${formatTime(end)} (${period} second${period === 1 ? '' : 's'})`
-        $unwatchedList.appendChild($unwatched)
+        $unwatched.href = '#' + $dummy.id
+        $unwatched.setAttribute('data-position', Math.max(start - 2, 0))
+        $unwatched.addEventListener('click', unwatchedClickHandler)
+        $unwatchedLi.appendChild($unwatched)
+        $unwatchedList.appendChild($unwatchedLi)
     }
     if (unwatchedPeriods.length > 0) {
         $con.appendChild($unwatchedList)

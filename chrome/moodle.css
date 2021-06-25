@@ -88,6 +88,11 @@ li.mediasite details .center {
     margin: 0 auto;
 }
 
+/* Shared by course view and mode view */
+li a[data-position]:visited {
+    color: #bd24d1;
+}
+
 /* https://bugzilla.mozilla.org/show_bug.cgi?id=680823 */
 li.mediasite details > .resizer {
     resize: vertical;

@@ -196,6 +196,7 @@ async function collectFromGetPlayerOptions($li) {
 
     // Append unwatched periods
     const totalSeconds = Math.floor(duration / 1e3)
+    const totalSecondsStr = formatTime(totalSeconds)
     // Assume coverages do not overlap
     const unwatchedPeriods = []
     let coveredSeconds = 0
@@ -233,20 +234,12 @@ async function collectFromGetPlayerOptions($li) {
     }
 
     // Show bookmark position
-    let appendix = ' '
-    if (bookmark && bookmark.position) {
-        const { position } = bookmark
-        const progress = position / duration * 1000
-        appendix += `[bookmark at ${Math.floor(position / 60)}:${Math.floor(position % 60)}(${progress.toLocaleString('en-US', {
-            style: 'percent',
-            maximumFractionDigits: 2
-        })})] `
-    }
+    const bookmarkTime = formatTime(bookmark?.position ?? 0)
     const $instanceNameNode = $con.querySelector('span.instancename')
     const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
     // Unwatched periods
-    appendix += `[Est. completeness = ${Math.min(1, coveredSeconds / totalSeconds)
+    const appendix = `[Est. completeness = ${Math.min(1, coveredSeconds / totalSeconds)
         .toLocaleString('en-US', {
             style: 'percent',
             maximumFractionDigits: 2
@@ -260,25 +253,47 @@ async function collectFromGetPlayerOptions($li) {
     const $portionCanvas = document.createElement('canvas')
     $portionCanvas.className = 'mediasite-proxy-portion'
     $li.appendChild($portionCanvas)
-    requestAnimationFrame(() => {
-        const width = $portionCanvas.clientWidth
+    const redraw = () => {
+        const {
+            paddingLeft: parentPaddingLeft,
+            paddingRight: parentPaddingRight
+        } = window.getComputedStyle($portionCanvas.parentElement)
+        const width = $portionCanvas.parentElement.clientWidth - parseFloat(parentPaddingLeft) - parseFloat(parentPaddingRight)
         const height = $portionCanvas.clientHeight
-        $portionCanvas.width = width
-        $portionCanvas.height = height
+        $portionCanvas.width = width * devicePixelRatio
+        $portionCanvas.height = height * devicePixelRatio
+        $portionCanvas.style.width = width + 'px';
+        $portionCanvas.style.height = height + 'px';
         const canvasCtx = $portionCanvas.getContext('2d')
+        canvasCtx.clearRect(0, 0, width, height)
+        canvasCtx.scale(devicePixelRatio, devicePixelRatio)
         canvasCtx.fillStyle = '#33bbe4'
         for (const [start, end] of unwatchedPeriods) {
             const x = start * width / totalSeconds
             const rectWidth = (end - start) * width / totalSeconds
-            canvasCtx.fillRect(x, 0, rectWidth, height)
+            canvasCtx.fillRect(x, 15, rectWidth, 5)
         }
-        if (bookmark && bookmark.position) {
+        if (bookmark?.position) {
             canvasCtx.fillStyle = 'black'
             const { position } = bookmark
-            const x = position * width / duration * 1000 - height / 2
-            canvasCtx.fillRect(x, 0, height, height)
+            const x = position * width / duration * 1000 - 5 / 2
+            canvasCtx.fillRect(x, 15, 5, 5)
         }
-    })
+        canvasCtx.fillStyle = '#555'
+        canvasCtx.font = '16px sans-serif';
+        const totalTimeWidth = canvasCtx.measureText(totalSecondsStr).width
+        const totalTimeX = width - totalTimeWidth
+        canvasCtx.fillText(totalSecondsStr, totalTimeX, 12)
+        if (bookmark?.position) {
+            const bookmarkTimeWidth = canvasCtx.measureText(bookmarkTime).width
+            canvasCtx.fillText(bookmarkTime, Math.max(0, Math.min(
+                bookmark.position * width / duration * 1000 - bookmarkTimeWidth / 2,
+                totalTimeX - 8 - bookmarkTimeWidth
+            )), 12)
+        }
+    }
+    requestAnimationFrame(redraw)
+    window.addEventListener('resize', _e => requestAnimationFrame(redraw))
 }
 
 /**

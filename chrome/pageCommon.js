@@ -1,7 +1,13 @@
 const MEDIASITE_ORIGIN = 'https://mymedia.xmu.edu.cn'
 
 function formatTime(seconds) {
-    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`
+    let hour = ''
+    if (seconds >= 3600) {
+        hour = Math.floor(seconds / 3600).toString() + ':'
+        seconds = seconds % 3600
+    }
+    const minute = Math.floor(seconds / 60).toString().padStart(2, '0')
+    return `${hour}${minute}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
 }
 
 /**

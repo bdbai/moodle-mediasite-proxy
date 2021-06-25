@@ -1,7 +1,7 @@
 canvas.mediasite-proxy-portion {
     width: 100%;
     height: 20px;
-    background-color: linear-gradient(#fff 0, #fff 15px, #e6f3f3 16px, #e6f3f3 20px);
+    background-image: linear-gradient(#fff 0, #fff 15px, #e6f3f3 16px, #e6f3f3 20px);
 }
 
 li.mediasite summary {

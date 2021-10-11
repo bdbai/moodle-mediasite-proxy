@@ -17,109 +17,18 @@ async function collectFromGetPlayerOptions() {
         return
     }
     const id = location.search.match(/id=(\d+)/)[1]
-    const {
-        directUrls,
-        slideStreams,
-        title,
-        mediasiteId,
-        coverages, // second!
-        duration,
-        bookmark // second!
-    } = await getPlayerOptionsAsync(id)
+    const playerOptions = await getPlayerOptionsAsync(id)
     const $con = document.createElement('div')
 
     // Append media info
-    const $header = document.createElement('h4')
-    $header.innerText = 'Media information'
-    $con.appendChild($header)
-
-    $con.appendChild(document.createElement('hr'))
-
-    const $title = document.createElement('p')
-    $title.innerText = 'Title: ' + title
-    $con.appendChild($title)
-
-    const $urlText = document.createElement('h5')
-    $urlText.innerText = 'Direct URLs'
-    $con.appendChild($urlText)
-
-    const $urlList = document.createElement('ul')
-    for (const url of directUrls) {
-        const $li = document.createElement('li')
-        const $a = document.createElement('a')
-        $a.href = url
-        $a.innerText = url
-        $li.appendChild($a)
-        $urlList.appendChild($li)
-    }
-    $con.appendChild($urlList)
-
-    for (const slideStream of slideStreams) {
-        const $copySlideDataBtn = document.createElement('button')
-        $copySlideDataBtn.innerText = 'Copy slide data'
-        $copySlideDataBtn.addEventListener('click', ev => {
-            ev.preventDefault()
-            navigator.clipboard
-                .writeText(JSON.stringify(slideStream))
-                .then(() => alert('Slide data copied'))
-                .catch(e => alert('Cannot copy slide data: ' + e.toString()))
-        })
-        $con.appendChild($copySlideDataBtn)
-    }
-
-    // Append unwatched periods
-    const totalSeconds = Math.floor(duration / 1e3)
-    // Assume coverages do not overlap
-    const unwatchedPeriods = []
-    let lastWatchedSecond = 0
-    for (const {
-        Duration: duration,
-        StartTime: startTime
-    } of coverages) {
-        if (startTime > lastWatchedSecond) {
-            unwatchedPeriods.push([lastWatchedSecond, startTime])
-        }
-        lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
-    }
-    if (lastWatchedSecond < totalSeconds) {
-        unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
-    }
-
-    const $unwatchedList = document.createElement('ol')
-    if (unwatchedPeriods.length > 0) {
-        const $unwatchedTitle = document.createElement('h5')
-        $unwatchedTitle.innerText = 'Unwatched portions'
-        $con.appendChild($unwatchedTitle)
-    }
-    /**
-     * @param {MouseEvent} e
-     */
-    function unwatchedClickHandler(e) {
-        /** @type {HTMLLIElement} */
-        const $el = e.target
-        const position = Number.parseInt($el.getAttribute('data-position'))
-        const $playerWindow = $iframe?.contentWindow
-        $playerWindow?.postMessage({ type: 'seek', position }, MEDIASITE_ORIGIN)
-        // In case autoplay is disabled
-        $playerWindow?.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
-    }
-    for (const [start, end] of unwatchedPeriods) {
-        const $unwatchedLi = document.createElement('li')
-        const $unwatched = document.createElement('a')
-        const $dummy = document.createElement('a')
-        $dummy.id = `video-seek-${start}`
-        $iframe?.before($dummy)
-        const period = end - start
-        $unwatched.innerText = `${formatTime(start)} - ${formatTime(end)} (${period} second${period === 1 ? '' : 's'})`
-        $unwatched.href = '#' + $dummy.id
-        $unwatched.setAttribute('data-position', Math.max(start - 2, 0))
-        $unwatched.addEventListener('click', unwatchedClickHandler)
-        $unwatchedLi.appendChild($unwatched)
-        $unwatchedList.appendChild($unwatchedLi)
-    }
-    if (unwatchedPeriods.length > 0) {
-        $con.appendChild($unwatchedList)
-    }
+    attachMediaInfo(playerOptions, {
+        $con,
+        header: true,
+        mediaTitle: true,
+        unwatchedAnchorPrefix: 'video',
+        $unwatchedAnchor: $iframe,
+        findPlayerWindow: _position => $iframe?.contentWindow
+    })
 
     const $cardBody = document.getElementById('maincontent').parentElement
     $cardBody.appendChild($con)

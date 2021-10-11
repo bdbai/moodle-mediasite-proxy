@@ -58,16 +58,14 @@ async function collectFromGetPlayerOptions($li) {
     const $backup = $li.cloneNode(true)
     removeYuiIds($backup)
     const id = $li.id.substr(7) // module-76543
+    const playerOptions = await getPlayerOptionsAsync(id)
     const {
-        directUrls,
-        slideStreams,
-        title,
         mediasiteId,
         coverages, // second!
         duration,
         bookmark, // second!
         thumbnail
-    } = await getPlayerOptionsAsync(id)
+    } = playerOptions
 
     const $con = document.createElement('details')
     const $summary = document.createElement('summary')
@@ -174,100 +172,19 @@ async function collectFromGetPlayerOptions($li) {
     }
 
     // Append media info
-    const $urlText = document.createElement('h5')
-    $urlText.innerText = 'Direct URLs'
-    $con.appendChild($urlText)
-    $con.appendChild(document.createElement('hr'))
+    attachMediaInfo(playerOptions, {
+        $con,
+        compact: false,
+        unwatchedAnchorPrefix: mediasiteId,
+        $unwatchedAnchor: $loadPlayerBtn,
+        findPlayerWindow: position => $playerWindow || ($loadPlayerBtn.click(), desiredInitialPosition = position, undefined)
+    })
 
-    const $urlList = document.createElement('ul')
-    for (const url of directUrls) {
-        const $li = document.createElement('li')
-        const $a = document.createElement('a')
-        $a.href = url
-        $a.innerText = url
-        $li.appendChild($a)
-        $urlList.appendChild($li)
-    }
-    $con.appendChild($urlList)
-
-    for (const slideStream of slideStreams) {
-        const $copySlideDataBtn = document.createElement('button')
-        $copySlideDataBtn.innerText = 'Copy slide data'
-        $copySlideDataBtn.addEventListener('click', ev => {
-            ev.preventDefault()
-            navigator.clipboard
-                .writeText(JSON.stringify(slideStream))
-                .then(() => alert('Slide data copied'))
-                .catch(e => alert('Cannot copy slide data: ' + e.toString()))
-        })
-        $con.appendChild($copySlideDataBtn)
-    }
-
-    // Append unwatched periods
     const totalSeconds = Math.floor(duration / 1e3)
-    const totalSecondsStr = formatTime(totalSeconds)
-    // Assume coverages do not overlap
-    const unwatchedPeriods = []
-    let coveredSeconds = 0
-    let lastWatchedSecond = 0
-    for (const {
-        Duration: duration,
-        StartTime: startTime
-    } of coverages) {
-        const endTime = Math.min(duration + startTime, totalSeconds)
-        coveredSeconds += endTime - startTime
-        if (startTime > lastWatchedSecond) {
-            unwatchedPeriods.push([lastWatchedSecond, startTime])
-        }
-        lastWatchedSecond = Math.min(totalSeconds, duration + startTime)
-    }
-    if (lastWatchedSecond < totalSeconds) {
-        unwatchedPeriods.push([lastWatchedSecond, totalSeconds])
-    }
-
-    const $unwatchedList = document.createElement('ol')
-    if (unwatchedPeriods.length > 0) {
-        const $unwatchedTitle = document.createElement('h5')
-        $unwatchedTitle.innerText = 'Unwatched portions'
-        $con.appendChild($unwatchedTitle)
-        $con.appendChild(document.createElement('hr'))
-    }
-    /**
-     * @param {MouseEvent} e
-     */
-    function unwatchedClickHandler(e) {
-        /** @type {HTMLLIElement} */
-        const $el = e.target
-        const position = Number.parseInt($el.getAttribute('data-position'))
-        if (!$playerWindow) {
-            $loadPlayerBtn.click()
-            desiredInitialPosition = position
-            return
-        }
-        $playerWindow.postMessage({ type: 'seek', position }, MEDIASITE_ORIGIN)
-        // In case autoplay is disabled
-        $playerWindow.postMessage({ type: 'play' }, MEDIASITE_ORIGIN)
-    }
-    for (const [start, end] of unwatchedPeriods) {
-        const $unwatchedLi = document.createElement('li')
-        const $unwatched = document.createElement('a')
-        const $dummy = document.createElement('a')
-        $dummy.id = `${mediasiteId}-seek-${start}`
-        $loadPlayerBtn.before($dummy)
-        const period = end - start
-        $unwatched.innerText = `${formatTime(start)} - ${formatTime(end)} (${period} second${period === 1 ? '' : 's'})`
-        $unwatched.href = '#' + $dummy.id
-        $unwatched.setAttribute('data-position', Math.max(start - 2, 0))
-        $unwatched.addEventListener('click', unwatchedClickHandler)
-        $unwatchedLi.appendChild($unwatched)
-        $unwatchedList.appendChild($unwatchedLi)
-    }
-    if (unwatchedPeriods.length > 0) {
-        $con.appendChild($unwatchedList)
-    }
+    const unwatchedPeriods = convertCoverageToUnwatched(coverages, totalSeconds)
+    const coveredSeconds = totalSeconds - unwatchedPeriods.map(([a, b]) => b - a).reduce((p, c) => p + c, 0)
 
     // Show bookmark position
-    const bookmarkTime = formatTime(bookmark?.position ?? 0)
     const $instanceNameNode = $con.querySelector('span.instancename')
     const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
@@ -283,48 +200,13 @@ async function collectFromGetPlayerOptions($li) {
 
     $li.appendChild($con)
 
-    const $portionCanvas = document.createElement('canvas')
-    $portionCanvas.className = 'mediasite-proxy-portion'
-    $li.appendChild($portionCanvas)
-    const redraw = () => {
-        const {
-            paddingLeft: parentPaddingLeft,
-            paddingRight: parentPaddingRight
-        } = window.getComputedStyle($portionCanvas.parentElement)
-        const width = $portionCanvas.parentElement.clientWidth - parseFloat(parentPaddingLeft) - parseFloat(parentPaddingRight)
-        const height = $portionCanvas.clientHeight
-        $portionCanvas.width = width * devicePixelRatio
-        $portionCanvas.height = height * devicePixelRatio
-        $portionCanvas.style.width = width + 'px';
-        $portionCanvas.style.height = height + 'px';
-        const canvasCtx = $portionCanvas.getContext('2d')
-        canvasCtx.clearRect(0, 0, width, height)
-        canvasCtx.scale(devicePixelRatio, devicePixelRatio)
-        canvasCtx.fillStyle = '#33bbe4'
-        for (const [start, end] of unwatchedPeriods) {
-            const x = start * width / totalSeconds
-            const rectWidth = (end - start) * width / totalSeconds
-            canvasCtx.fillRect(x, 15, rectWidth, 5)
-        }
-        if (bookmark?.position) {
-            canvasCtx.fillStyle = 'black'
-            const { position } = bookmark
-            const x = position * width / duration * 1000 - 5 / 2
-            canvasCtx.fillRect(x, 15, 5, 5)
-        }
-        canvasCtx.fillStyle = '#555'
-        canvasCtx.font = '16px sans-serif';
-        const totalTimeWidth = canvasCtx.measureText(totalSecondsStr).width
-        const totalTimeX = width - totalTimeWidth
-        canvasCtx.fillText(totalSecondsStr, totalTimeX, 12)
-        if (bookmark?.position) {
-            const bookmarkTimeWidth = canvasCtx.measureText(bookmarkTime).width
-            canvasCtx.fillText(bookmarkTime, Math.max(0, Math.min(
-                bookmark.position * width / duration * 1000 - bookmarkTimeWidth / 2,
-                totalTimeX - 8 - bookmarkTimeWidth
-            )), 12)
-        }
-    }
+    const redraw = () => drawProgressOnce(
+        $c => $li.appendChild($c),
+        unwatchedPeriods,
+        bookmark,
+        totalSeconds,
+        duration
+    )
     requestAnimationFrame(redraw)
     window.addEventListener('resize', _e => requestAnimationFrame(redraw))
 }

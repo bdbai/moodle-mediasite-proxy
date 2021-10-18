@@ -36,6 +36,12 @@ window.addEventListener('message', e => {
             document.querySelector('button.play-button')?.click()
             e.stopImmediatePropagation()
             break
+        case 'pause':
+            const $videos = Array
+                .from(document.getElementsByTagName('video'))
+                .filter($v => !$v.classList.contains('ad-player'))
+            $videos.forEach($v => $v.pause())
+            break
         case 'updateCoverage':
             updateCoverage()
             break

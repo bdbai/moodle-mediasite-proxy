@@ -10,13 +10,15 @@ import {
 /**
  * @type {Record<SettingKeys, string>}
  */
-const binarySettingKeyToId = {
+const settingKeyToId = {
     dictFw: 'dict-fw-box',
     manifestFw: 'manifest-fw-box',
     mediaFw: 'media-fw-box',
     extractInfo: 'extract-info-box',
     autoplay: 'autoplay-box',
-    showThumbnail: 'show-thumbnail-box'
+    showThumbnail: 'show-thumbnail-box',
+    barFgColorStart: 'bar-fg-color-start',
+    barFgColorEnd: 'bar-fg-color-end',
 }
 
 /**
@@ -39,11 +41,11 @@ async function updateAvailabilityEl($el) {
     $el.classList.add('pending')
     /** @type {HTMLLabelElement | undefined} */
     let $settingLabel = undefined
-    if (Object.prototype.hasOwnProperty.call(binarySettingKeyToId, forwardingSetting)) {
-        const settingElId = binarySettingKeyToId[forwardingSetting];
+    if (Object.prototype.hasOwnProperty.call(settingKeyToId, forwardingSetting)) {
+        const settingElId = settingKeyToId[forwardingSetting];
         /** @type {HTMLInputElement} */
         const $setting = document.getElementById(settingElId);
-        const $label = document.querySelector(`label[for=${binarySettingKeyToId[forwardingSetting]}`)
+        const $label = document.querySelector(`label[for=${settingKeyToId[forwardingSetting]}`)
         $label.classList.remove('error')
         if ($setting.checked) {
             $settingLabel = $label
@@ -66,11 +68,20 @@ async function updateAvailabilityEl($el) {
 async function main() {
     const settings = await getSettings()
     Object
-        .entries(binarySettingKeyToId)
+        .entries(settingKeyToId)
         .forEach(([k, v]) => {
             /** @type {HTMLInputElement} */
             const $el = document.getElementById(v)
-            $el.checked = settings[k]
+            if ($el.type === 'checkbox') {
+                $el.checked = settings[k]
+            } else {
+                $el.value = settings[k]
+                $el.addEventListener('contextmenu', e => {
+                    e.preventDefault()
+                    $el.value = $el.getAttribute('data-default')
+                    saveSettingValue(k, $el.value)
+                })
+            }
             console.log(`Set ${k} to ${v}`)
             if (k.endsWith('Fw')) {
                 $el.addEventListener('change', _e => {
@@ -91,7 +102,11 @@ async function main() {
                 })
             } else {
                 $el.addEventListener('change', _e => {
-                    return saveSettingValue(k, $el.checked)
+                    if ($el.type === 'checkbox') {
+                        return saveSettingValue(k, $el.checked)
+                    } else {
+                        return saveSettingValue(k, $el.value)
+                    }
                 })
             }
         })

@@ -46,6 +46,7 @@
         "https://l.xmu.edu.my/mod/folder/view.php?id=*"
       ],
       "js": [
+        "pageCommon.js",
         "folderView.js"
       ],
       "css": [

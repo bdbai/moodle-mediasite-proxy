@@ -50,6 +50,13 @@
         #media-source-box {
             margin-left: .4rem;
         }
+
+        input[type="color"] {
+            margin-top: .2rem;
+            margin-left: .5rem;
+            float: right;
+            width: 2rem;
+        }
     </style>
 </head>
 
@@ -97,6 +104,11 @@
                 <option value="ss">Smooth Streaming</option>
                 <option value="dash">Dash</option>
             </select>
+        </div>
+        <div style="overflow: hidden; line-height: 2rem;">
+            Completeness Bar Color:
+            <input id="bar-fg-color-end" type="color" title="Loaded" data-default="#33bbe4">
+            <input id="bar-fg-color-start" type="color" title="Loading" data-default="#a7dcec">
         </div>
         <div>
             <input id="extract-info-box" type="checkbox">

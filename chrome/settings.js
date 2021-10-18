@@ -5,7 +5,9 @@
  *   mediaFw: boolean,
  *   extractInfo: boolean,
  *   showThumbnail: boolean,
- *   videoSource: 'default' | 'm3u8' | 'mp4' | 'ss' | 'dash'
+ *   videoSource: 'default' | 'm3u8' | 'mp4' | 'ss' | 'dash',
+ *   barFgColorStart: string,
+ *   barFgColorEnd: string
  * }} Setting
  */
 
@@ -20,7 +22,9 @@ export const defaultSettings = {
     extractInfo: true,
     autoplay: true,
     showThumbnail: true,
-    videoSource: 'default'
+    videoSource: 'default',
+    barFgColorStart: '#33bbe4',
+    barFgColorEnd: '#33bbe4'
 }
 
 /**

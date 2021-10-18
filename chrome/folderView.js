@@ -77,11 +77,10 @@ async function collectFromGetPlayerOptions($a) {
     $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
     $p.before($con)
 
-    drawProgressOnce(
+    drawProgress(
         $c => $a.parentElement.querySelector('h3').after($c),
         unwatchedPeriods,
         bookmark,
-        totalSeconds,
         duration
     )
 }

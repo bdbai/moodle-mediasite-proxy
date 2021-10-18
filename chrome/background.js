@@ -36,6 +36,23 @@ async function withRetry(func, predicate) {
 }
 
 /**
+ * @template T
+ * @param {T} obj 
+ * @returns {T}
+ */
+function removeUutype(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(removeUutype)
+    }
+    if (typeof obj === 'object') {
+        return Object.fromEntries(Object.entries(obj)
+            .filter(([k, _]) => k !== '__type')
+            .map(([k, v]) => [k, removeUutype(v)]))
+    }
+    return obj
+}
+
+/**
  * @param {string} landingUrl
  */
 async function getPlayerOptions(landingUrl) {
@@ -92,8 +109,8 @@ async function getPlayerOptions(landingUrl) {
     const directUrls = streams
         .filter(s => s.VideoUrls.length > 0)
         .map(s => s.VideoUrls[0].Location)
-    const slideStreams = streams
-        .filter(s => s.StreamType === 2)
+    const slideStreams = removeUutype(streams
+        .filter(s => s.StreamType === 2))
     const thumbnail = [
         ...streams.map(s => s.ThumbnailUrl),
         (presentationThumbnailUrl || '') + '?authticket=' + authTicket
@@ -108,9 +125,9 @@ async function getPlayerOptions(landingUrl) {
         slideStreams,
         title,
         mediasiteId,
-        coverages,
+        coverages: removeUutype(coverages),
         duration,
-        bookmark,
+        bookmark: removeUutype(bookmark),
         thumbnail
     }
 }

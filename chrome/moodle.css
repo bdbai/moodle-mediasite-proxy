@@ -11,6 +11,11 @@ li.mediasite summary {
     outline: unset;
     /* Position this element to let thumbnail bottom: 100% work */
     position: relative;
+    transition: background-color .1s ease-out;
+}
+
+li.mediasite summary:hover {
+        background-color: #f7fcfc;
 }
 
 li.mediasite summary > div.item-header {

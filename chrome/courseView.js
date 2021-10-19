@@ -123,7 +123,9 @@ function displayPlayerOptions($li, playerOptions, showThumbnail, requestUpdate) 
         let abortHandle = undefined
         onThumbnailChange = thumbnail => {
             if (abortHandle) {
-                $summary.removeChild($thumbCon)
+                try {
+                    $summary.removeChild($thumbCon)
+                } catch (_) { }
                 abortHandle?.abort()
             }
             abortHandle = new AbortController()

@@ -299,7 +299,7 @@ function drawProgress(insertCanvas, unwatchedPeriods, bookmark, duration) {
         let newPeriods = [...finalUnwatchedPeriods.map(([s, e]) => [s, e]), [duration, duration]]
         while (oldIndex < oldPeriods.length && newIndex < newPeriods.length) {
             let oldPeriod = oldPeriods[oldIndex]
-            let newPeriod = newPeriods[oldIndex]
+            let newPeriod = newPeriods[newIndex]
             while (oldPeriod[1] <= newPeriod[1]) {
                 if (oldPeriod[1] <= newPeriod[0]) {
                     intermediateUnwatchedPeriods.push([oldPeriod[0], oldPeriod[1], -1])

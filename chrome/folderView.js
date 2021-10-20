@@ -54,20 +54,16 @@ async function collectFromGetPlayerOptions($a) {
     if (bookmark && bookmark.position) {
         const { position } = bookmark
         const progress = position / duration * 1000
-        appendix += `[bookmark at ${
-            Math.floor(position / 60)}:${
-            Math.floor(position % 60)}(${
-            progress.toLocaleString('en-US', {
-                style: 'percent',
-                maximumFractionDigits: 2
-            })})] `
+        appendix += `[bookmark at ${Math.floor(position / 60)}:${Math.floor(position % 60)}(${progress.toLocaleString('en-US', {
+            style: 'percent',
+            maximumFractionDigits: 2
+        })})] `
     }
     const $instanceNameNode = $a.parentElement.querySelector('h3 a:last-child')
     const $instanceNameTextNode = $instanceNameNode.childNodes[0]
 
     // Unwatched periods
-    appendix += `[Est. completeness = ${
-        Math.min(1, coveredSeconds / totalSeconds)
+    appendix += `[Est. completeness = ${Math.min(1, coveredSeconds / totalSeconds)
             .toLocaleString('en-US', {
                 style: 'percent',
                 maximumFractionDigits: 2
@@ -77,12 +73,13 @@ async function collectFromGetPlayerOptions($a) {
     $instanceNameTextNode.textContent += appendix //` [bookmark at 1:3(5%)][Est. completeness = %]`
     $p.before($con)
 
-    drawProgress(
+    const progressUpdate = drawProgress(
         $c => $a.parentElement.querySelector('h3').after($c),
         unwatchedPeriods,
         bookmark,
         duration
     )
+    progressUpdate(unwatchedPeriods, bookmark, duration)
 }
 
 !function () {

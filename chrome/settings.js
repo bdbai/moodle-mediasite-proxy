@@ -23,7 +23,7 @@ export const defaultSettings = {
     autoplay: true,
     showThumbnail: true,
     videoSource: 'default',
-    barFgColorStart: '#33bbe4',
+    barFgColorStart: '#a7dcec',
     barFgColorEnd: '#33bbe4'
 }
 
